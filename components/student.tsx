@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, ArrowRight, BookOpen, Check, CheckCircle2, Clock, Lightbulb, LockKeyhole, RotateCcw, Search, Send, ShieldCheck, Trophy, ClipboardCheck, ClipboardList } from "lucide-react";
+import { ArrowLeft, ArrowRight, BadgeCheck, BookOpen, Check, CheckCircle2, Clock, Lightbulb, LockKeyhole, RotateCcw, Search, Send, ShieldCheck, Trophy, ClipboardCheck, ClipboardList } from "lucide-react";
 import { canStart, validName, type ClassName, type Participant, type Phase, type Results as ResultData, type TestKind } from "@/lib/model";
 import { AikoSays, Robot } from "./robot";
+import { Dialog } from "./dialog";
 
 const classLabel = (className: ClassName) => className === "V" ? "5" : "6";
 
@@ -19,7 +20,7 @@ export function Join({ onJoin, onBack }: { onJoin: (name: string, className: Cla
     <form className="panel join-panel" onSubmit={async event => { event.preventDefault(); if (sending) return; if (!className || !validName(name)) { setError("Tulis nama minimal 2 huruf dan pilih kelasmu, ya."); return; } setSending(true); const problem = await onJoin(name, className); setSending(false); if (problem) setError(problem); }}>
       <label className="field-label" htmlFor="participant-name"><span className="field-number" aria-hidden="true">1</span>Nama lengkapmu</label>
       <input id="participant-name" className="name-input" placeholder="Tulis nama lengkapmu" value={name} maxLength={60} required minLength={2} autoComplete="off" autoCapitalize="words" spellCheck={false} aria-describedby={error ? "name-error name-hint" : "name-hint"} aria-invalid={!!error} onChange={event => { setName(event.target.value); setError(""); }}/>
-      <p className="field-hint" id="name-hint">Pakai nama yang sama saat pretest dan posttest, ya.</p>
+      <p className="field-hint" id="name-hint">Tulis nama lengkap seperti di absen kelas. Pakai nama yang sama saat pretest dan posttest, ya.</p>
       <fieldset className="class-options">
         <legend className="field-label"><span className="field-number" aria-hidden="true">2</span>Kelasmu</legend>
         {(["V", "VI"] as ClassName[]).map(value => <label className={className === value ? "selected" : ""} key={value}>
@@ -29,6 +30,7 @@ export function Join({ onJoin, onBack }: { onJoin: (name: string, className: Cla
         </label>)}
       </fieldset>
       {error ? <p id="name-error" className="field-error" role="alert">{error}</p> : null}
+      {!sending && (!validName(name) || !className) ? <p className="field-hint join-missing" aria-live="polite">{!validName(name) ? "Tulis namamu dulu, lalu pilih kelas." : "Sekarang pilih kelasmu."}</p> : null}
       <button className="button primary full-width big" disabled={!validName(name) || !className || sending} type="submit">{sending ? "Sebentar, ya..." : <>Ayo masuk<ArrowRight size={20} strokeWidth={2.5}/></>}</button>
       <p className="privacy-note"><ShieldCheck size={18} aria-hidden="true"/><span>Nama dan kelas dipakai untuk menyambungkan hasil pretest dan posttest-mu.</span></p>
     </form>
@@ -39,6 +41,7 @@ type StopState = "done" | "now" | "wait";
 type Stop = { key: string; title: string; step: string; icon: React.ReactNode; state: StopState; detail: string; action?: React.ReactNode };
 
 export function StudentHub({ participant, phase, onStart, onChange, onResults }: { participant: Participant; phase: Phase; onStart: (kind: TestKind) => void; onChange: () => void; onResults: () => void }) {
+  const [confirmChange, setConfirmChange] = useState(false);
   const preDone = !!participant.pretest?.submittedAt;
   const postDone = !!participant.posttest?.submittedAt;
   const answered = (kind: TestKind) => participant[kind]?.answers.filter(answer => answer !== null).length ?? 0;
@@ -65,9 +68,13 @@ export function StudentHub({ participant, phase, onStart, onChange, onResults }:
     : phase === "posttest" && !preDone ? "Posttest bisa dikerjakan setelah pretest. Angkat tangan dan panggil kakak pendamping, ya."
     : "Pretest selesai! Tunggu kakak pendamping memulai kegiatan berikutnya.";
   return <section className="student-layout content-width">
+    {confirmChange ? <Dialog title={`Kamu bukan ${participant.name}?`} onClose={() => setConfirmChange(false)}>
+      <p>Kalau keluar, jawaban {participant.name} tetap aman. Untuk kembali, tulis nama dan kelas yang sama persis.</p>
+      <div className="modal-actions"><button className="button secondary" onClick={() => setConfirmChange(false)}>Tidak, ini aku</button><button className="button primary" onClick={() => { setConfirmChange(false); onChange(); }}>Ya, ganti nama</button></div>
+    </Dialog> : null}
     <div className="hub-heading">
       <div><p className="kicker">Kelas {classLabel(participant.className)} · Petualangan belajarmu</p><h1>Halo, {participant.name}!</h1></div>
-      <button className="text-button" onClick={onChange}><RotateCcw size={17}/> Bukan kamu? Ganti peserta</button>
+      <button className="text-button" onClick={() => setConfirmChange(true)}><RotateCcw size={17}/> Bukan kamu? Ganti peserta</button>
     </div>
     <AikoSays live>{message}</AikoSays>
     <ol className="journey journey-live" aria-label="Langkah kegiatan">
@@ -121,48 +128,60 @@ export function Completion({ kind, participant, onContinue }: { kind: TestKind; 
     <p className="kicker">{kind === "pretest" ? "Pretest selesai" : "Posttest selesai"}</p>
     <h1>Terima kasih, {participant.name}!</h1>
     <p className="completion-saved">Jawabanmu sudah terkirim dan tersimpan.</p>
-    <div className="completion-note"><p>{kind === "pretest" ? "Sekarang kita belajar bersama. Nilai dan pembahasan bisa kamu lihat setelah posttest selesai." : "Apa pun hasilnya, terus bertanya dan berpikir sendiri. Yuk, lihat apa yang sudah kamu pahami."}</p></div>
+    <div className="completion-note"><p>{kind === "pretest" ? "Sekarang kita belajar bersama. Nilai dan pembahasan bisa kamu lihat setelah posttest selesai." : "Kamu sudah menyelesaikan kedua tes. Yuk, lihat hasilmu."}</p></div>
     <button className={`button ${kind === "pretest" ? "primary" : "sun"} big`} onClick={onContinue}>{kind === "pretest" ? "Kembali ke petualanganku" : "Lihat hasil belajarku"}<ArrowRight size={20} strokeWidth={2.5}/></button>
   </section>;
 }
 
+// Pesan ditentukan dari nilai tes akhir dulu, baru dari perubahan. Selisih negatif tidak ditampilkan sebagai angka minus
+// karena soal tes awal dan tes akhir berbeda (saran psikolog anak di council).
+function resultMessage(pre: number, post: number) {
+  if (post === 10) return "Sempurna! Semua jawabanmu tepat.";
+  if (post >= 8) return "Keren! Kamu sudah paham banyak hal tentang AI.";
+  if (post > pre) return "Ada hal baru yang kamu pahami!";
+  return "Kamu sudah berusaha sampai selesai. Yuk, baca pembahasannya supaya makin paham.";
+}
+
 export function Results({ participant, results, onBack }: { participant: Participant; results: ResultData; onBack: () => void }) {
   const [kind, setKind] = useState<TestKind>("posttest");
-  const pre = results.pretest.score;
-  const post = results.posttest.score;
+  const pre = results.scores.pretest;
+  const post = results.scores.posttest;
   const change = post - pre;
+  const review = results.review?.[kind];
   return <section className="results-layout content-width">
     <button className="text-button" onClick={onBack}><ArrowLeft size={18}/> Kembali ke petualangan</button>
     <div className="result-summary">
       <div className="score-highlight">
-        <Trophy size={34} strokeWidth={2.2} aria-hidden="true"/>
-        <span className="score-label">Nilai posttest</span>
-        <strong>{post}<small>/10</small></strong>
-        <span>{post > pre ? "Ada hal baru yang kamu pahami!" : "Terus belajar, ya. Kamu pasti bisa!"}</span>
+        <BadgeCheck size={36} strokeWidth={2.2} aria-hidden="true"/>
+        <span className="score-label">Tes akhir: jawaban tepat</span>
+        <strong>{post}<small> dari 10</small></strong>
+        <span>{resultMessage(pre, post)}</span>
       </div>
       <div className="results-heading">
         <p className="kicker">Kedua tes selesai</p>
         <h1>Ini hasil belajarmu, {participant.name}!</h1>
-        <div className="score-bars" role="img" aria-label={`Pretest ${pre} dari 10, posttest ${post} dari 10, perubahan ${change > 0 ? "naik" : change < 0 ? "turun" : "tetap"} ${Math.abs(change)} poin.`}>
-          <div className="score-bar"><span className="score-bar-label">Pretest</span><span className="score-bar-track"><span className="pre" style={{ width: `${pre * 10}%` }}/></span><strong>{pre}/10</strong></div>
-          <div className="score-bar"><span className="score-bar-label">Posttest</span><span className="score-bar-track"><span className="post" style={{ width: `${post * 10}%` }}/></span><strong>{post}/10</strong></div>
+        <div className="score-bars" role="img" aria-label={`Tes awal ${pre} dari 10, tes akhir ${post} dari 10.`}>
+          <div className="score-bar"><span className="score-bar-label">Tes awal</span><span className="score-bar-track"><span className="pre" style={{ width: `${pre * 10}%` }}/></span><strong>{pre}/10</strong></div>
+          <div className="score-bar"><span className="score-bar-label">Tes akhir</span><span className="score-bar-track"><span className="post" style={{ width: `${post * 10}%` }}/></span><strong>{post}/10</strong></div>
         </div>
-        <p className="score-change">Perubahan: <strong>{change > 0 ? "+" : ""}{change} poin</strong></p>
+        <p className="score-change">{change > 0 ? <>Naik <strong>{change} poin</strong> dari tes awal. Hebat!</> : change === 0 ? "Nilaimu sama di kedua tes." : "Soal tes awal dan tes akhir berbeda, jadi nilainya tidak selalu naik. Yang penting, kamu tahu apa yang perlu dipelajari lagi."}</p>
       </div>
     </div>
-    <div className="review-heading"><div><h2>Yuk, pahami bersama</h2><p>Klik soal untuk membaca penjelasannya.</p></div><div className="segmented-control" role="group" aria-label="Pilih pembahasan">{(["pretest", "posttest"] as TestKind[]).map(test => <button key={test} aria-pressed={kind === test} className={kind === test ? "active" : ""} onClick={() => setKind(test)}>{test === "pretest" ? "Pretest" : "Posttest"}</button>)}</div></div>
-    <div className="explanation-list">{results[kind].questions.map((question, index) => {
-      const answer = results[kind].answers[index];
-      const correct = results[kind].correct[index];
-      const right = answer === correct;
-      return <details key={`${kind}-${question.id}`} className="panel explanation">
-        <summary><span className="explanation-number">{index + 1}</span><span className="explanation-question">{question.text}</span><span className={`status-pill ${right ? "green" : "sun"}`}>{right ? <><CheckCircle2 size={15} strokeWidth={2.5}/>Tepat</> : <><BookOpen size={15} strokeWidth={2.5}/>Ayo pelajari</>}</span></summary>
-        <div className="explanation-content">
-          <p className={`answer-line ${right ? "right" : "wrong"}`}><span>Jawabanmu</span><strong>{question.options[answer]}</strong></p>
-          {right ? null : <p className="answer-line right"><span>Jawaban tepat</span><strong>{question.options[correct]}</strong></p>}
-          <div className="explanation-tip"><Lightbulb size={20} aria-hidden="true"/><p>{results[kind].explanations[index]}</p></div>
-        </div>
-      </details>;
-    })}</div>
+    {results.review ? <>
+      <div className="review-heading"><div><h2>Yuk, pahami bersama</h2><p>Klik soal untuk membaca penjelasannya.</p></div><div className="segmented-control" role="group" aria-label="Pilih pembahasan">{(["pretest", "posttest"] as TestKind[]).map(test => <button key={test} aria-pressed={kind === test} className={kind === test ? "active" : ""} onClick={() => setKind(test)}>{test === "pretest" ? "Tes awal" : "Tes akhir"}</button>)}</div></div>
+      <div className="explanation-list">{review!.questions.map((question, index) => {
+        const answer = review!.answers[index];
+        const correct = review!.correct[index];
+        const right = answer === correct;
+        return <details key={`${kind}-${question.id}`} className="panel explanation">
+          <summary><span className="explanation-number">{index + 1}</span><span className="explanation-question">{question.text}</span><span className={`status-pill ${right ? "green" : "sun"}`}>{right ? <><CheckCircle2 size={15} strokeWidth={2.5}/>Tepat</> : <><BookOpen size={15} strokeWidth={2.5}/>Ayo pelajari</>}</span></summary>
+          <div className="explanation-content">
+            <p className={`answer-line ${right ? "right" : "wrong"}`}><span>Jawabanmu</span><strong>{question.options[answer]}</strong></p>
+            {right ? null : <p className="answer-line right"><span>Jawaban tepat</span><strong>{question.options[correct]}</strong></p>}
+            <div className="explanation-tip"><Lightbulb size={20} aria-hidden="true"/><p>{review!.explanations[index]}</p></div>
+          </div>
+        </details>;
+      })}</div>
+    </> : <AikoSays live>Pembahasan soal akan muncul di sini setelah kakak pendamping menutup tes untuk semua teman. Tunggu sebentar, ya.</AikoSays>}
   </section>;
 }

@@ -12,7 +12,9 @@ export const fail = (status: number, message: string) => NextResponse.json({ err
 export function assertSameOrigin(request: NextRequest) {
   const origin = request.headers.get("origin");
   const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
-  if (!origin || !host || new URL(origin).host !== host) throw new HttpError(403, "Permintaan ditolak. Muat ulang halaman lalu coba lagi.");
+  let originHost = "";
+  try { originHost = origin ? new URL(origin).host : ""; } catch {}
+  if (!originHost || !host || originHost !== host) throw new HttpError(403, "Ada gangguan kecil. Muat ulang halaman, lalu coba lagi. Jawaban yang sudah tersimpan tidak hilang.");
 }
 
 export async function readJson(request: NextRequest): Promise<Record<string, unknown>> {
@@ -30,7 +32,7 @@ export function handle(handler: (request: NextRequest) => Promise<Response>) {
     } catch (error) {
       if (error instanceof HttpError) return fail(error.status, error.message);
       console.error("API error", request.method, request.nextUrl.pathname, error instanceof Error ? error.message : "unknown");
-      return fail(503, "Server sedang sibuk. Tunggu sebentar lalu coba lagi.");
+      return fail(503, "Aplikasi sedang ramai dipakai. Tunggu sebentar, lalu coba lagi.");
     }
   };
 }

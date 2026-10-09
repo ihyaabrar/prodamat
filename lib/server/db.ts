@@ -7,6 +7,8 @@ const holder = globalThis as unknown as { prodamatPool?: Pool };
 
 function createPool() {
   const pool = new Pool({ connectionString: process.env.DATABASE_URL, max: 5, idleTimeoutMillis: 5000, connectionTimeoutMillis: 10000 });
+  // Neon bisa memutus koneksi idle; tanpa listener ini node-postgres menghentikan proses.
+  pool.on("error", error => console.error("pg pool error", error.message));
   attachDatabasePool(pool);
   return pool;
 }

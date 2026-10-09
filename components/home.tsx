@@ -39,9 +39,9 @@ export function Home({ onStart, returning }: { onStart: () => void; returning: b
         </ol>
       </div>
       <div className="how-demo" aria-hidden="true">
-        <span className="how-demo-label">Contoh jawaban yang dipilih</span>
-        <div className="answer-option"><span className="option-letter">A</span><span className="option-text">Pensil</span></div>
-        <div className="answer-option selected"><span className="option-letter">B</span><span className="option-text">Google Maps</span><span className="option-check"><Check size={18} strokeWidth={3}/></span></div>
+        <span className="how-demo-label">Contoh (bukan soal tes): Apa warna langit saat cerah?</span>
+        <div className="answer-option"><span className="option-letter">A</span><span className="option-text">Hijau</span></div>
+        <div className="answer-option selected"><span className="option-letter">B</span><span className="option-text">Biru</span><span className="option-check"><Check size={18} strokeWidth={3}/></span></div>
         <span className="how-demo-note">Jawaban yang kamu klik berubah biru.</span>
       </div>
     </section>

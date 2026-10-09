@@ -596,3 +596,7 @@ th:last-child:has(.sr-only) { background: #f5f7fa; }
   *, *::before, *::after { transition: none !important; animation: none !important; }
   .burst { display: none; }
 }
+.save-alert { display: flex; align-items: center; justify-content: space-between; gap: 12px 16px; flex-wrap: wrap; margin-top: 18px; padding: 14px 16px; background: #fff0df; border: 2px solid #f0c9a0; border-radius: 16px; }
+.save-alert p { color: #7c3618; font-size: 16px; flex: 1 1 260px; }
+.save-alert strong { color: #7c3618; }
+.join-missing { margin: -10px 0 12px; text-align: center; }

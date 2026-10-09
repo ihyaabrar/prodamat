@@ -4,7 +4,8 @@ import { getPhase } from "@/lib/server/data";
 import { assertSameOrigin, clientIp, handle, HttpError, ok, readJson } from "@/lib/server/http";
 import { createSession, setSessionCookie } from "@/lib/server/session";
 
-const MAX_FAILURES = 8;
+// Semua Chromebook di Wi-Fi sekolah memakai satu IP publik, jadi batasnya longgar agar anak iseng tidak mengunci pendamping.
+const MAX_FAILURES = 30;
 const digest = (value: string) => createHash("sha256").update(value).digest();
 
 export const POST = handle(async request => {

@@ -8,8 +8,9 @@ export type Question = PublicQuestion & { correct: number };
 export type Attempt = { answers: (number | null)[]; submittedAt: string | null };
 export type Participant = { code: string; name: string; className: ClassName; pretest: Attempt | null; posttest: Attempt | null };
 export type Me = { phase: Phase; participant: Participant | null };
-export type TestResult = { score: number; answers: number[]; correct: number[]; explanations: string[]; questions: PublicQuestion[] };
-export type Results = Record<TestKind, TestResult>;
+export type TestReview = { answers: number[]; correct: number[]; explanations: string[]; questions: PublicQuestion[] };
+// Pembahasan (berisi kunci) baru dikirim saat tahap Selesai, agar tidak tersebar ke teman yang masih mengerjakan.
+export type Results = { scores: Record<TestKind, number>; review: Record<TestKind, TestReview> | null };
 export type RekapParticipant = Participant & { scores: Record<TestKind, number | null> };
 export type Rekap = { phase: Phase; sample: boolean; participants: RekapParticipant[]; questions: Record<TestKind, Question[]> };
 

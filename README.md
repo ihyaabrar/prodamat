@@ -35,7 +35,7 @@ Perintah lain: `npm run typecheck`, `npm run build`, `npm run db:migrate` (mener
 - Data di Neon Postgres (`db/schema.sql`): `activity` (tahap kegiatan), `participant`, `attempt` (10 jawaban, waktu kirim, nilai), `session`, `login_failure`.
 - API ada di `app/api/*` (Route Handlers). Logika server di `lib/server/`; kunci jawaban, pembahasan, dan skoring hanya di `lib/server/content.ts` (ditandai `server-only`). Soal untuk siswa dikirim tanpa kunci.
 - Sesi memakai token acak di cookie HttpOnly; database hanya menyimpan hash token. Siswa 7 hari, pendamping 12 jam.
-- Pendamping masuk dengan `PENDAMPING_PASSWORD` (variabel lingkungan di Vercel). Setelah 8 kali salah dalam 15 menit dari IP yang sama, percobaan ditolak sementara.
+- Pendamping masuk dengan `PENDAMPING_PASSWORD` (variabel lingkungan di Vercel). Setelah 30 kali salah dalam 15 menit dari IP yang sama (satu sekolah biasanya satu IP), percobaan ditolak sementara.
 - Semua permintaan yang mengubah data harus berasal dari origin aplikasi sendiri.
 - Menyimpan dan mengirim jawaban diperiksa dalam satu pernyataan SQL: tahap harus cocok, tes belum dikirim, posttest butuh pretest terkirim, dan kiriman harus lengkap 10 jawaban. Kiriman ganda tidak mengubah nilai.
 - `PRODAMAT_ACTIVITY_ID` memisahkan data per kegiatan (default `prodamat-2026`).

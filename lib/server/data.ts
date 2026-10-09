@@ -89,12 +89,11 @@ export async function getResults(participantId: string): Promise<Results> {
   const participant = await getParticipant(participantId);
   if (!participant?.pretest?.submittedAt || !participant.posttest?.submittedAt) throw new HttpError(403, "Hasil bisa dilihat setelah pretest dan posttest selesai.");
   const shown = publicQuestions();
-  const result = (kind: TestKind) => {
-    const correct = answerKey(kind);
-    const answers = participant[kind]!.answers as number[];
-    return { score: answers.reduce((total, answer, index) => total + Number(answer === correct[index]), 0), answers, correct, explanations: explanations[kind], questions: shown[kind] };
-  };
-  return { pretest: result("pretest"), posttest: result("posttest") };
+  const answers = (kind: TestKind) => participant[kind]!.answers as number[];
+  const score = (kind: TestKind) => answerKey(kind).reduce((total, correct, index) => total + Number(answers(kind)[index] === correct), 0);
+  const review = (kind: TestKind) => ({ answers: answers(kind), correct: answerKey(kind), explanations: explanations[kind], questions: shown[kind] });
+  const open = (await getPhase()) === "closed";
+  return { scores: { pretest: score("pretest"), posttest: score("posttest") }, review: open ? { pretest: review("pretest"), posttest: review("posttest") } : null };
 }
 
 // Pendamping membetulkan nama atau kelas. Sesi siswa tetap tersambung karena terikat ke ID peserta.

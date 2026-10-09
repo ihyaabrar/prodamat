@@ -102,8 +102,17 @@ await step("posttest dikirim (9 benar) dan hasil lengkap", async () => {
   for (let index = 0; index < 10; index++) await siswa("/api/jawaban", { method: "PUT", body: { kind: "posttest", index, answer: index < 9 ? key.posttest[index] : (key.posttest[index] + 1) % 4 } });
   assert.equal((await siswa("/api/kirim", { method: "POST", body: { kind: "posttest" } })).status, 200);
   const { status, data } = await siswa("/api/hasil");
-  assert.equal(status, 200); assert.equal(data.pretest.score, 6); assert.equal(data.posttest.score, 9); assert.equal(data.posttest.explanations.length, 10);
+  assert.equal(status, 200); assert.equal(data.scores.pretest, 6); assert.equal(data.scores.posttest, 9);
+  assert.equal(data.review, null, "kunci dan pembahasan belum boleh dikirim sebelum tahap Selesai");
+  assert.ok(!JSON.stringify(data).includes("correct"));
 });
+await step("pembahasan terbuka setelah tahap Selesai", async () => {
+  await pendamping("/api/pendamping/fase", { method: "PATCH", body: { phase: "closed" } });
+  const { data } = await siswa("/api/hasil");
+  assert.equal(data.review.posttest.explanations.length, 10); assert.equal(data.review.pretest.correct.length, 10);
+  await pendamping("/api/pendamping/fase", { method: "PATCH", body: { phase: "posttest" } });
+});
+await step("Origin rusak ditolak 403, bukan 503", async () => assert.equal((await siswa("/api/peserta", { method: "POST", body: { name: "Uji Dua", className: "V" }, origin: "null" })).status, 403));
 await step("data contoh tidak menyentuh data kegiatan", async () => {
   const { data } = await pendamping("/api/pendamping/rekap?contoh=1");
   assert.equal(data.sample, true); assert.equal(data.participants.length, 20);
