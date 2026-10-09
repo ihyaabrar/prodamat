@@ -2,20 +2,21 @@
 
 import { useState } from "react";
 import { ArrowLeft, ArrowRight, BookOpen, Check, CheckCircle2, Clock, Lightbulb, LockKeyhole, RotateCcw, Search, Send, ShieldCheck, Trophy, ClipboardCheck, ClipboardList } from "lucide-react";
-import { canStart, explanations, questions, score, validName, type ClassName, type Participant, type Phase, type TestKind } from "@/lib/model";
+import { canStart, validName, type ClassName, type Participant, type Phase, type Results as ResultData, type TestKind } from "@/lib/model";
 import { AikoSays, Robot } from "./robot";
 
 const classLabel = (className: ClassName) => className === "V" ? "5" : "6";
 
-export function Join({ onJoin, onBack }: { onJoin: (name: string, className: ClassName) => boolean; onBack: () => void }) {
+export function Join({ onJoin, onBack }: { onJoin: (name: string, className: ClassName) => Promise<string | null>; onBack: () => void }) {
   const [name, setName] = useState("");
   const [className, setClassName] = useState<ClassName | null>(null);
   const [error, setError] = useState("");
+  const [sending, setSending] = useState(false);
   return <section className="student-layout join-layout content-width">
     <button className="text-button" onClick={onBack}><ArrowLeft size={18}/> Kembali ke beranda</button>
     <h1 className="join-title">Kenalan dulu, yuk!</h1>
     <AikoSays wave>Tulis namamu, lalu pilih kelasmu. Tidak perlu email atau kata sandi.</AikoSays>
-    <form className="panel join-panel" onSubmit={event => { event.preventDefault(); if (!className || !onJoin(name, className)) setError("Tulis nama minimal 2 huruf dan pilih kelasmu, ya."); }}>
+    <form className="panel join-panel" onSubmit={async event => { event.preventDefault(); if (sending) return; if (!className || !validName(name)) { setError("Tulis nama minimal 2 huruf dan pilih kelasmu, ya."); return; } setSending(true); const problem = await onJoin(name, className); setSending(false); if (problem) setError(problem); }}>
       <label className="field-label" htmlFor="participant-name"><span className="field-number" aria-hidden="true">1</span>Nama lengkapmu</label>
       <input id="participant-name" className="name-input" placeholder="Tulis nama lengkapmu" value={name} maxLength={60} required minLength={2} autoComplete="off" autoCapitalize="words" spellCheck={false} aria-describedby={error ? "name-error name-hint" : "name-hint"} aria-invalid={!!error} onChange={event => { setName(event.target.value); setError(""); }}/>
       <p className="field-hint" id="name-hint">Pakai nama yang sama saat pretest dan posttest, ya.</p>
@@ -28,7 +29,7 @@ export function Join({ onJoin, onBack }: { onJoin: (name: string, className: Cla
         </label>)}
       </fieldset>
       {error ? <p id="name-error" className="field-error" role="alert">{error}</p> : null}
-      <button className="button primary full-width big" disabled={!validName(name) || !className} type="submit">Ayo masuk<ArrowRight size={20} strokeWidth={2.5}/></button>
+      <button className="button primary full-width big" disabled={!validName(name) || !className || sending} type="submit">{sending ? "Sebentar, ya..." : <>Ayo masuk<ArrowRight size={20} strokeWidth={2.5}/></>}</button>
       <p className="privacy-note"><ShieldCheck size={18} aria-hidden="true"/><span>Nama dan kelas dipakai untuk menyambungkan hasil pretest dan posttest-mu.</span></p>
     </form>
   </section>;
@@ -110,7 +111,7 @@ const burst = Array.from({ length: 14 }, (_, index) => {
   return { x: Math.round(Math.cos(angle) * distance), y: Math.round(Math.sin(angle) * distance * .8), tone: ["blue", "sun", "green"][index % 3], delay: (index % 4) * 40 };
 });
 
-export function Completion({ kind, participant, saved, onContinue }: { kind: TestKind; participant: Participant; saved: boolean; onContinue: () => void }) {
+export function Completion({ kind, participant, onContinue }: { kind: TestKind; participant: Participant; onContinue: () => void }) {
   return <section className="completion-layout content-width">
     <div className="completion-art">
       <div className="burst" aria-hidden="true">{burst.map((piece, index) => <span key={index} className={piece.tone} style={{ "--x": `${piece.x}px`, "--y": `${piece.y}px`, animationDelay: `${piece.delay}ms` } as React.CSSProperties}/>)}</div>
@@ -119,16 +120,16 @@ export function Completion({ kind, participant, saved, onContinue }: { kind: Tes
     </div>
     <p className="kicker">{kind === "pretest" ? "Pretest selesai" : "Posttest selesai"}</p>
     <h1>Terima kasih, {participant.name}!</h1>
-    <p className="completion-saved">Jawabanmu {saved ? "sudah tersimpan di perangkat ini." : "tercatat di halaman ini, tetapi belum tersimpan di perangkat."}</p>
+    <p className="completion-saved">Jawabanmu sudah terkirim dan tersimpan.</p>
     <div className="completion-note"><p>{kind === "pretest" ? "Sekarang kita belajar bersama. Nilai dan pembahasan bisa kamu lihat setelah posttest selesai." : "Apa pun hasilnya, terus bertanya dan berpikir sendiri. Yuk, lihat apa yang sudah kamu pahami."}</p></div>
     <button className={`button ${kind === "pretest" ? "primary" : "sun"} big`} onClick={onContinue}>{kind === "pretest" ? "Kembali ke petualanganku" : "Lihat hasil belajarku"}<ArrowRight size={20} strokeWidth={2.5}/></button>
   </section>;
 }
 
-export function Results({ participant, onBack }: { participant: Participant; onBack: () => void }) {
+export function Results({ participant, results, onBack }: { participant: Participant; results: ResultData; onBack: () => void }) {
   const [kind, setKind] = useState<TestKind>("posttest");
-  const pre = score(participant.pretest, "pretest") ?? 0;
-  const post = score(participant.posttest, "posttest") ?? 0;
+  const pre = results.pretest.score;
+  const post = results.posttest.score;
   const change = post - pre;
   return <section className="results-layout content-width">
     <button className="text-button" onClick={onBack}><ArrowLeft size={18}/> Kembali ke petualangan</button>
@@ -150,15 +151,16 @@ export function Results({ participant, onBack }: { participant: Participant; onB
       </div>
     </div>
     <div className="review-heading"><div><h2>Yuk, pahami bersama</h2><p>Klik soal untuk membaca penjelasannya.</p></div><div className="segmented-control" role="group" aria-label="Pilih pembahasan">{(["pretest", "posttest"] as TestKind[]).map(test => <button key={test} aria-pressed={kind === test} className={kind === test ? "active" : ""} onClick={() => setKind(test)}>{test === "pretest" ? "Pretest" : "Posttest"}</button>)}</div></div>
-    <div className="explanation-list">{questions[kind].map((question, index) => {
-      const answer = participant[kind]?.answers[index] ?? 0;
-      const right = answer === question.correct;
+    <div className="explanation-list">{results[kind].questions.map((question, index) => {
+      const answer = results[kind].answers[index];
+      const correct = results[kind].correct[index];
+      const right = answer === correct;
       return <details key={`${kind}-${question.id}`} className="panel explanation">
         <summary><span className="explanation-number">{index + 1}</span><span className="explanation-question">{question.text}</span><span className={`status-pill ${right ? "green" : "sun"}`}>{right ? <><CheckCircle2 size={15} strokeWidth={2.5}/>Tepat</> : <><BookOpen size={15} strokeWidth={2.5}/>Ayo pelajari</>}</span></summary>
         <div className="explanation-content">
           <p className={`answer-line ${right ? "right" : "wrong"}`}><span>Jawabanmu</span><strong>{question.options[answer]}</strong></p>
-          {right ? null : <p className="answer-line right"><span>Jawaban tepat</span><strong>{question.options[question.correct]}</strong></p>}
-          <div className="explanation-tip"><Lightbulb size={20} aria-hidden="true"/><p>{explanations[kind][index]}</p></div>
+          {right ? null : <p className="answer-line right"><span>Jawaban tepat</span><strong>{question.options[correct]}</strong></p>}
+          <div className="explanation-tip"><Lightbulb size={20} aria-hidden="true"/><p>{results[kind].explanations[index]}</p></div>
         </div>
       </details>;
     })}</div>

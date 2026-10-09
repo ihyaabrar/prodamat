@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, CheckCircle2, CircleAlert, Send } from "lucide-react";
-import { questions, type Participant, type TestKind } from "@/lib/model";
+import { ArrowLeft, ArrowRight, Check, CheckCircle2, CircleAlert, LoaderCircle, RotateCcw, Send } from "lucide-react";
+import type { Participant, PublicQuestion, TestKind } from "@/lib/model";
 import { Dialog } from "./dialog";
+import type { SaveState } from "./experience";
 
-export function Quiz({ participant, kind, saved, onAnswer, onSubmit, onExit }: {
-  participant: Participant; kind: TestKind; saved: boolean;
+export function Quiz({ participant, kind, questions, save, submitting, onRetry, onAnswer, onSubmit, onExit }: {
+  participant: Participant; kind: TestKind; questions: PublicQuestion[]; save: SaveState; submitting: boolean; onRetry: () => void;
   onAnswer: (question: number, answer: number) => void; onSubmit: () => void; onExit: () => void;
 }) {
   const answers = participant[kind]?.answers ?? Array<number | null>(10).fill(null);
@@ -14,7 +15,7 @@ export function Quiz({ participant, kind, saved, onAnswer, onSubmit, onExit }: {
   const [review, setReview] = useState(false);
   const headingRef = useRef<HTMLLegendElement>(null);
   useEffect(() => { headingRef.current?.focus(); }, [index]);
-  const question = questions[kind][index];
+  const question = questions[index];
   const answered = answers.filter(answer => answer !== null).length;
   const navigate = (next: number) => { setIndex(next); setReview(false); };
   return <section className="quiz-layout content-width">
@@ -32,7 +33,7 @@ export function Quiz({ participant, kind, saved, onAnswer, onSubmit, onExit }: {
     </div>
     <div className="quiz-navigation">
       <button className="button secondary" disabled={index === 0} onClick={() => navigate(index - 1)}><ArrowLeft size={20} strokeWidth={2.5}/> Kembali</button>
-      <span className={`save-label ${saved ? "" : "unsaved"}`} role="status">{saved ? <CheckCircle2 size={16}/> : <CircleAlert size={16}/>}{saved ? "Tersimpan otomatis" : "Belum tersimpan"}</span>
+      <span className={`save-label ${save === "error" ? "unsaved" : ""}`} role="status">{save === "saving" ? <><LoaderCircle size={16} className="spin"/>Menyimpan...</> : save === "error" ? <><CircleAlert size={16}/>Gagal menyimpan<button className="retry-link" onClick={onRetry}><RotateCcw size={14}/>Coba lagi</button></> : save === "saved" ? <><CheckCircle2 size={16}/>Tersimpan</> : <><CheckCircle2 size={16}/>Jawaban tersimpan otomatis</>}</span>
       {index < 9 ? <button className="button primary big" disabled={answers[index] === null} onClick={() => navigate(index + 1)}>Lanjut<ArrowRight size={20} strokeWidth={2.5}/></button> : <button className="button sun big" onClick={() => setReview(true)}>Periksa jawaban<CheckCircle2 size={20} strokeWidth={2.5}/></button>}
     </div>
     {answers[index] === null && index < 9 ? <p className="quiz-hint">Pilih satu jawaban dulu untuk lanjut. Belum yakin? Pilih yang menurutmu paling tepat.</p> : null}
@@ -42,9 +43,9 @@ export function Quiz({ participant, kind, saved, onAnswer, onSubmit, onExit }: {
       <p className="map-count"><strong>{answered}</strong> dari 10 soal terjawab</p>
     </nav>
     {review ? <Dialog title={answered === 10 ? "Siap mengirim jawaban?" : "Yuk, lengkapi dulu!"} onClose={() => setReview(false)}>
-      <p>{answered === 10 ? "Kamu sudah menjawab 10 soal. Setelah dikirim, jawaban tidak bisa diubah lagi." : `Masih ada ${10 - answered} soal yang belum dijawab. Nomor berwarna kuning belum dijawab. Klik nomornya untuk melengkapi.`}</p>
+      <p>{answered === 10 ? save === "error" ? "Ada jawaban yang belum tersimpan. Tutup jendela ini lalu klik Coba lagi di bawah soal." : "Kamu sudah menjawab 10 soal. Setelah dikirim, jawaban tidak bisa diubah lagi." : `Masih ada ${10 - answered} soal yang belum dijawab. Nomor berwarna kuning belum dijawab. Klik nomornya untuk melengkapi.`}</p>
       <div className="review-numbers">{answers.map((answer, number) => <button key={number} className={`question-dot ${answer !== null ? "answered" : "missing"}`} onClick={() => navigate(number)} aria-label={`Buka soal ${number + 1}, ${answer === null ? "belum dijawab" : "sudah dijawab"}`}>{number + 1}</button>)}</div>
-      <div className="modal-actions"><button className="button secondary" onClick={() => setReview(false)}>Periksa lagi</button><button className="button primary" disabled={answered !== 10} onClick={onSubmit}>Kirim jawaban<Send size={18}/></button></div>
+      <div className="modal-actions"><button className="button secondary" onClick={() => setReview(false)}>Periksa lagi</button><button className="button primary" disabled={answered !== 10 || submitting || save === "saving" || save === "error"} onClick={onSubmit}>{submitting ? "Mengirim..." : save === "saving" ? "Menyimpan..." : <>Kirim jawaban<Send size={18}/></>}</button></div>
     </Dialog> : null}
   </section>;
 }

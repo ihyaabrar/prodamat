@@ -1,6 +1,6 @@
 # Tahap backend Prodamat
 
-Status 9 Oktober 2026: rancangan implementasi selesai; database dan backend belum dibuat. Target akun/tim dikonfirmasi pengguna: ihyaabrars-projects. Koneksi Vercel menolak akses integrasi dengan 403. Frontend yang sudah diverifikasi tetap berjalan.
+Status 9 Oktober 2026: backend selesai dibangun dan diuji (Neon sin1, Route Handlers, sesi cookie, login pendamping). Lihat README bagian Backend dan keamanan. Ekspor CSV dibuat di dashboard dari data rekap, bukan endpoint terpisah.
 
 ## Hasil yang dituju
 
