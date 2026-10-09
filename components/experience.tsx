@@ -42,11 +42,15 @@ function StudentApp({ mainRef, homeSignal }: { mainRef: React.RefObject<HTMLElem
   const saveSeq = useRef(0);
   const view = useRef({ screen, kind });
   useEffect(() => { view.current = { screen, kind }; }, [screen, kind]);
+  const signedIn = useRef(false);
+  useEffect(() => { signedIn.current = !!me?.participant; }, [me?.participant]);
 
   // Saat sedang mengerjakan soal, jawaban lokal dipertahankan agar sinkron berkala tidak menimpa pilihan yang sedang disimpan.
   const load = useCallback(async () => {
     try {
       const next = await api<Me>("/api/peserta/saya");
+      // Pendamping menghapus data siswa ini atau memulai sesi baru.
+      if (signedIn.current && !next.participant) { setNotice("Kakak pendamping memulai sesi baru atau menghapus datamu. Isi nama dan kelasmu lagi, ya."); setScreen("join"); }
       setMe(previous => {
         const { screen: current, kind: test } = view.current;
         const local = previous?.participant?.[test];

@@ -1,6 +1,6 @@
 import "server-only";
-import type { Attempt, ClassName, Me, Participant, Phase, RekapParticipant, Results, TestKind } from "../model";
-import { activityId, db } from "./db";
+import { nameKey, type Attempt, type ClassName, type Me, type Participant, type Phase, type RekapParticipant, type Results, type TestKind } from "../model";
+import { activityId, db, transaction } from "./db";
 import { answerKey, explanations, publicQuestions } from "./content";
 import { HttpError } from "./http";
 
@@ -95,4 +95,30 @@ export async function getResults(participantId: string): Promise<Results> {
     return { score: answers.reduce((total, answer, index) => total + Number(answer === correct[index]), 0), answers, correct, explanations: explanations[kind], questions: shown[kind] };
   };
   return { pretest: result("pretest"), posttest: result("posttest") };
+}
+
+// Pendamping membetulkan nama atau kelas. Sesi siswa tetap tersambung karena terikat ke ID peserta.
+export async function updateParticipant(id: string, name: string, className: ClassName) {
+  try {
+    const { rowCount } = await db.query("update participant set name = $3, name_key = $4, class_name = $5 where id = $1 and activity_id = $2", [id, activityId(), name, nameKey(name), className]);
+    if (!rowCount) throw new HttpError(404, "Siswa ini sudah tidak ada. Muat ulang dashboard.");
+  } catch (error) {
+    if ((error as { code?: string }).code === "23505") throw new HttpError(409, `Sudah ada siswa bernama ${name} di kelas ${className}.`);
+    throw error;
+  }
+}
+
+// Menghapus siswa beserta jawaban dan sesinya (cascade).
+export async function deleteParticipant(id: string) {
+  const { rowCount } = await db.query("delete from participant where id = $1 and activity_id = $2", [id, activityId()]);
+  if (!rowCount) throw new HttpError(404, "Siswa ini sudah tidak ada. Muat ulang dashboard.");
+}
+
+// Sesi baru: hapus semua siswa kegiatan ini dan kembali ke tahap pretest. Sesi pendamping tetap berlaku.
+export async function resetActivity() {
+  await getPhase();
+  await transaction(async client => {
+    await client.query("delete from participant where activity_id = $1", [activityId()]);
+    await client.query("update activity set phase = 'pretest', updated_at = now() where id = $1", [activityId()]);
+  });
 }

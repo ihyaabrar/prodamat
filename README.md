@@ -17,7 +17,7 @@ PRODAMAT_ACTIVITY_ID=uji-lokal
 PENDAMPING_PASSWORD=<kata sandi uji lokal>
 ```
 
-Perintah lain: `npm run typecheck`, `npm run build`, `npm run db:migrate` (menerapkan `db/schema.sql`, idempoten), dan `npm run test:api` (26 uji alur API terhadap `npm run dev`; hanya jalan bila `PRODAMAT_ACTIVITY_ID` diawali `uji`, datanya dihapus di akhir).
+Perintah lain: `npm run typecheck`, `npm run build`, `npm run db:migrate` (menerapkan `db/schema.sql`, idempoten), dan `npm run test:api` (32 uji alur API terhadap `npm run dev`; hanya jalan bila `PRODAMAT_ACTIVITY_ID` diawali `uji`, datanya dihapus di akhir).
 
 ## Mencoba alur lengkap
 
@@ -26,7 +26,9 @@ Perintah lain: `npm run typecheck`, `npm run build`, `npm run db:migrate` (mener
 3. Periksa lalu kirim. Nilai dihitung server; nilai dan pembahasan baru tampil setelah posttest.
 4. Buka `/pendamping` di perangkat lain, masuk dengan kata sandi pendamping, pilih **Belajar** lalu **Posttest**. Perangkat siswa mengikuti dalam sekitar 8 detik selama halamannya terbuka.
 5. Selesaikan posttest, lalu lihat nilai dan pembahasan kedua tes.
-6. Dashboard diperbarui otomatis setiap 10 detik. Coba filter kelas, pencarian, peringkat, analisis soal, dan unduh CSV. **Lihat data contoh** memakai data simulasi dari server tanpa menyentuh data kegiatan.
+6. Setiap ganti tahap muncul konfirmasi berisi akibatnya bagi siswa, termasuk jumlah siswa yang masih mengerjakan tes yang akan ditutup.
+7. Tombol **Ubah** di tiap baris membetulkan nama atau kelas (jawaban tetap tersambung) atau menghapus siswa. **Mulai sesi baru** di bagian bawah menghapus semua siswa dan jawaban lalu kembali ke Pretest; wajib mengetik `MULAI BARU`, dan ada tombol unduh CSV sebelum menghapus.
+8. Dashboard diperbarui otomatis setiap 10 detik. Coba filter kelas, pencarian, peringkat, analisis soal, dan unduh CSV. **Lihat data contoh** memakai data simulasi dari server tanpa menyentuh data kegiatan.
 
 ## Backend dan keamanan
 

@@ -13,6 +13,7 @@ export type Results = Record<TestKind, TestResult>;
 export type RekapParticipant = Participant & { scores: Record<TestKind, number | null> };
 export type Rekap = { phase: Phase; sample: boolean; participants: RekapParticipant[]; questions: Record<TestKind, Question[]> };
 
+export const RESET_PHRASE = "MULAI BARU";
 export const phaseLabels: Record<Phase, string> = { pretest: "Pretest dibuka", learning: "Waktu belajar", posttest: "Posttest dibuka", closed: "Sesi ditutup" };
 export const isPhase = (value: unknown): value is Phase => typeof value === "string" && Object.hasOwn(phaseLabels, value);
 export const isTestKind = (value: unknown): value is TestKind => value === "pretest" || value === "posttest";

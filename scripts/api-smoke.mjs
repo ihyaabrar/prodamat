@@ -23,6 +23,15 @@ function client() {
   };
 }
 
+async function clearActivity() {
+  const db = new pg.Client({ connectionString: process.env.DATABASE_URL_UNPOOLED ?? process.env.DATABASE_URL });
+  await db.connect();
+  await db.query("delete from activity where id = $1", [ACTIVITY]);
+  await db.query("delete from login_failure where at > now() - interval '1 hour' and ip in ('::1', '127.0.0.1', 'unknown', '::ffff:127.0.0.1')");
+  await db.end();
+}
+await clearActivity();
+
 const results = [];
 async function step(name, run) {
   try { await run(); results.push(`PASS  ${name}`); }
@@ -105,15 +114,38 @@ await step("ganti peserta mengakhiri sesi", async () => {
   assert.equal((await siswa("/api/peserta/saya")).data.participant, null);
   assert.equal((await siswa("/api/soal")).status, 401);
 });
+const findRow = async (name, className) => (await pendamping("/api/pendamping/rekap")).data.participants.find(p => p.name === name && p.className === className);
+await step("siswa tidak bisa mengubah data siswa (401)", async () => assert.equal((await siswaUlang("/api/pendamping/peserta", { method: "PATCH", body: { id: "00000000-0000-0000-0000-000000000000", name: "X Y", className: "V" } })).status, 401));
+await step("pendamping membetulkan nama, jawaban tetap tersambung", async () => {
+  const row = await findRow("Uji Satu", "V");
+  assert.equal((await pendamping("/api/pendamping/peserta", { method: "PATCH", body: { id: row.code, name: "Uji Satu Benar", className: "V" } })).status, 200);
+  const renamed = await findRow("Uji Satu Benar", "V");
+  assert.equal(renamed.scores.posttest, 9);
+  assert.equal((await siswaUlang("/api/peserta/saya")).data.participant.name, "Uji Satu Benar");
+});
+await step("nama bentrok di kelas yang sama ditolak (409)", async () => {
+  const other = await findRow("Uji Satu", "VI");
+  assert.equal((await pendamping("/api/pendamping/peserta", { method: "PATCH", body: { id: other.code, name: "uji satu benar", className: "V" } })).status, 409);
+});
+await step("pendamping menghapus satu siswa", async () => {
+  const other = await findRow("Uji Satu", "VI");
+  assert.equal((await pendamping("/api/pendamping/peserta", { method: "DELETE", body: { id: other.code } })).status, 200);
+  assert.equal(await findRow("Uji Satu", "VI"), undefined);
+  assert.equal((await siswaLain("/api/peserta/saya")).data.participant, null);
+});
+await step("reset tanpa kalimat konfirmasi ditolak (400)", async () => assert.equal((await pendamping("/api/pendamping/reset", { method: "POST", body: { confirm: "ya" } })).status, 400));
+await step("reset mengosongkan siswa dan kembali ke pretest", async () => {
+  await pendamping("/api/pendamping/fase", { method: "PATCH", body: { phase: "closed" } });
+  assert.equal((await pendamping("/api/pendamping/reset", { method: "POST", body: { confirm: "mulai baru" } })).status, 200);
+  const { data } = await pendamping("/api/pendamping/rekap");
+  assert.equal(data.participants.length, 0); assert.equal(data.phase, "pretest");
+  assert.equal((await siswaUlang("/api/peserta/saya")).data.participant, null);
+});
 await step("pendamping keluar", async () => {
   await pendamping("/api/pendamping/keluar", { method: "POST" });
   assert.equal((await pendamping("/api/pendamping/rekap")).status, 401);
 });
 
-const db = new pg.Client({ connectionString: process.env.DATABASE_URL_UNPOOLED ?? process.env.DATABASE_URL });
-await db.connect();
-await db.query("delete from activity where id = $1", [ACTIVITY]);
-await db.query("delete from login_failure where at > now() - interval '1 hour' and ip in ('::1', '127.0.0.1', 'unknown', '::ffff:127.0.0.1')");
-await db.end();
+await clearActivity();
 console.log(results.join("\n"));
 console.log(`\n${results.filter(line => line.startsWith("PASS")).length}/${results.length} lulus. Data kegiatan "${ACTIVITY}" sudah dihapus.`);

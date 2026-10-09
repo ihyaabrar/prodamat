@@ -385,7 +385,29 @@ td.table-name { font-weight: 800; max-width: 300px; overflow-wrap: anywhere; whi
 .help-content strong { color: var(--ink); }
 .help-content { margin-bottom: 24px; }
 .review-numbers { grid-template-columns: repeat(5, 44px); justify-content: center; margin-block: 24px; }
-.modal-actions { display: flex; gap: 12px; justify-content: flex-end; }
+.modal-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: flex-end; margin-top: 24px; }
+.modal-actions .spacer { flex: 1; }
+.modal p + p { margin-top: 12px; }
+.dialog-label { margin-top: 20px; font-size: 17px; }
+.dialog-warning { display: flex; gap: 10px; align-items: flex-start; margin-top: 16px; padding: 12px 14px; background: #fff0df; border-radius: 12px; color: #7c3618; font-size: 16px; }
+.dialog-warning svg { margin-top: 3px; }
+.dialog-warning strong { color: #7c3618; }
+.modal > .button.full-width { margin-top: 16px; }
+.class-options.compact { margin: 20px 0 0; }
+.class-options.compact label { min-height: 64px; }
+.class-options.compact .class-number { width: 40px; height: 40px; font-size: 22px; }
+/* Merah hanya untuk tindakan yang menghapus data. */
+.danger { background: #a42f25; color: #fff; --press: #6e1f18; }
+.danger:hover:not(:disabled) { background: #8c271f; }
+.danger-outline { background: #fff; color: #a42f25; border-color: #a42f25; --press: #e3b4ad; }
+.danger-outline:hover:not(:disabled) { background: #fdf1ef; }
+td:has(> .row-action), th:last-child:has(.sr-only) { position: sticky; right: 0; background: #fff; box-shadow: -8px 0 8px -8px #1f2d4433; }
+th:last-child:has(.sr-only) { background: #f5f7fa; }
+.row-action { min-height: 44px; padding: 6px 12px; font-size: 14px; box-shadow: 0 2px 0 var(--press); }
+.danger-zone { display: flex; align-items: center; justify-content: space-between; gap: 16px 24px; margin-top: 28px; padding: 22px 26px; border: 2px dashed #e3b4ad; background: #fff; }
+.danger-zone h2 { font-size: 21px; }
+.danger-zone p { margin-top: 6px; font-size: 15px; max-width: 640px; }
+.danger-zone .button { flex-shrink: 0; }
 
 /* Gerak: hanya untuk umpan balik dan memandu perhatian, sekali jalan, tanpa loop. */
 @keyframes pop { from { transform: scale(.4); opacity: 0; } }
@@ -564,6 +586,8 @@ td.table-name { font-weight: 800; max-width: 300px; overflow-wrap: anywhere; whi
   .modal { padding: 28px 20px; }
   .modal h2 { font-size: 24px; }
   .modal-actions { flex-direction: column-reverse; }
+  .modal-actions .spacer { display: none; }
+  .danger-zone { flex-direction: column; align-items: stretch; padding: 20px 16px; }
   .review-numbers { grid-template-columns: repeat(5, 1fr); gap: 6px; }
   .review-numbers .question-dot { width: 100%; }
 }

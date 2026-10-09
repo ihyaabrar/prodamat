@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { ArrowDownToLine, Check, KeyRound, LogOut, Search, Trophy } from "lucide-react";
-import { csvCell, phaseLabels, ranking, type Phase, type Rekap, type RekapParticipant, type TestKind } from "@/lib/model";
+import { AlertTriangle, ArrowDownToLine, Check, KeyRound, LogOut, Pencil, RotateCcw, Search, Trash2, Trophy } from "lucide-react";
+import { csvCell, isClassName, phaseLabels, ranking, RESET_PHRASE, validName, type ClassName, type Phase, type Rekap, type RekapParticipant, type TestKind } from "@/lib/model";
+import { Dialog } from "./dialog";
 import { api, errorMessage, errorStatus } from "@/lib/api";
 import { StateMessage } from "./state-message";
 
@@ -12,6 +13,13 @@ const phaseOptions: { value: Phase; label: string; description: string }[] = [
   { value: "posttest", label: "Posttest", description: "Setelah materi" },
   { value: "closed", label: "Selesai", description: "Tutup sesi" },
 ];
+const phaseEffects: Record<Phase, string> = {
+  pretest: "Siswa bisa mengerjakan pretest. Posttest tetap tertutup.",
+  learning: "Pretest ditutup. Siswa melihat langkah Jadi Detektif AI dan menunggu posttest.",
+  posttest: "Pretest ditutup dan posttest dibuka untuk siswa yang sudah mengirim pretest.",
+  closed: "Semua tes ditutup. Siswa yang sudah menyelesaikan kedua tes tetap bisa melihat hasilnya.",
+};
+const phaseActions: Record<Phase, string> = { pretest: "Ya, buka pretest", learning: "Ya, mulai waktu belajar", posttest: "Ya, buka posttest", closed: "Ya, tutup sesi" };
 const format = (value: number | null) => value === null ? "Belum ada" : value.toLocaleString("id-ID", { maximumFractionDigits: 1 });
 const REFRESH_MS = 10000;
 
@@ -55,7 +63,7 @@ export function AdminApp() {
 
   if (status === "login") return <AdminLogin onDone={() => { setStatus("loading"); void load(sample); }}/>;
   if (status === "loading" || !rekap) return status === "error" ? <StateMessage title="Data kegiatan belum bisa dimuat." detail={error} onRetry={() => load(sample)}/> : <StateMessage title="Memuat data kegiatan..."/>;
-  return <Admin rekap={rekap} sample={sample} onSample={() => setSample(!sample)} onPhase={changePhase} phaseSaving={phaseSaving} onLogout={logout} error={error}/>;
+  return <Admin rekap={rekap} sample={sample} onSample={() => setSample(!sample)} onPhase={changePhase} phaseSaving={phaseSaving} onLogout={logout} onRefresh={() => load(sample)} error={error}/>;
 }
 
 function AdminLogin({ onDone }: { onDone: () => void }) {
@@ -80,7 +88,10 @@ function AdminLogin({ onDone }: { onDone: () => void }) {
   </section>;
 }
 
-function Admin({ rekap, sample, onSample, onPhase, phaseSaving, onLogout, error }: { rekap: Rekap; sample: boolean; onSample: () => void; onPhase: (phase: Phase) => void; phaseSaving: boolean; onLogout: () => void; error: string }) {
+function Admin({ rekap, sample, onSample, onPhase, phaseSaving, onLogout, onRefresh, error }: { rekap: Rekap; sample: boolean; onSample: () => void; onPhase: (phase: Phase) => Promise<void>; phaseSaving: boolean; onLogout: () => void; onRefresh: () => Promise<void>; error: string }) {
+  const [pendingPhase, setPendingPhase] = useState<Phase | null>(null);
+  const [editing, setEditing] = useState<RekapParticipant | null>(null);
+  const [resetting, setResetting] = useState(false);
   const [search, setSearch] = useState("");
   const [classFilter, setClassFilter] = useState("all");
   const [tab, setTab] = useState<"participants" | "questions" | "ranking">("participants");
@@ -114,16 +125,16 @@ function Admin({ rekap, sample, onSample, onPhase, phaseSaving, onLogout, error 
     <p className="local-notice">Data tersimpan di server kegiatan dan diperbarui otomatis setiap 10 detik.</p>
     {error ? <div className="sample-notice" role="alert"><strong>Pembaruan gagal.</strong> {error} Data di bawah adalah data terakhir yang berhasil dimuat.</div> : null}
     {sample ? <div className="sample-notice" role="status"><strong>Data contoh.</strong> Nama dan jawaban di bawah adalah simulasi. Pengaturan sesi tetap mengatur kegiatan yang sebenarnya.</div> : null}
-    <div className="panel session-panel"><div className="panel-title"><div><h2>Atur sesi kegiatan</h2><p>Pilih tahap yang sedang berlangsung.</p></div><span className="status-pill blue" role="status">{phaseSaving ? "Menyimpan..." : phaseLabels[phase]}</span></div><div className="phase-switch">{phaseOptions.map((option, index) => <button key={option.value} className={phase === option.value ? "active" : ""} aria-pressed={phase === option.value} disabled={phaseSaving} onClick={() => onPhase(option.value)}><span className="phase-number">{phase === option.value ? <Check size={18}/> : index + 1}</span><span><strong>{option.label}</strong><small>{option.description}</small></span></button>)}</div><p className="field-hint">Posttest bisa dimulai setelah pretest selesai. Perubahan tahap sampai ke perangkat siswa dalam beberapa detik.</p></div>
+    <div className="panel session-panel"><div className="panel-title"><div><h2>Atur sesi kegiatan</h2><p>Pilih tahap yang sedang berlangsung.</p></div><span className="status-pill blue" role="status">{phaseSaving ? "Menyimpan..." : phaseLabels[phase]}</span></div><div className="phase-switch">{phaseOptions.map((option, index) => <button key={option.value} className={phase === option.value ? "active" : ""} aria-pressed={phase === option.value} disabled={phaseSaving} onClick={() => { if (option.value !== phase) setPendingPhase(option.value); }}><span className="phase-number">{phase === option.value ? <Check size={18}/> : index + 1}</span><span><strong>{option.label}</strong><small>{option.description}</small></span></button>)}</div><p className="field-hint">Posttest bisa dimulai setelah pretest selesai. Perubahan tahap sampai ke perangkat siswa dalam beberapa detik.</p></div>
     <dl className="admin-stats"><div><dt>Peserta terdaftar</dt><dd>{data.length}<span>siswa</span></dd><p>{data.filter(item => item.className === "V").length} kelas V · {data.filter(item => item.className === "VI").length} kelas VI</p></div><div><dt>Pretest selesai</dt><dd>{preDone.length}<span>dari {data.length}</span></dd><p>{data.length - preDone.length} belum selesai</p></div><div><dt>Kedua tes selesai</dt><dd>{paired.length}<span>dari {data.length}</span></dd><p>Siap ditampilkan dalam peringkat</p></div></dl>
     <div className="panel roster-panel">
       <div className="roster-top"><div className="admin-tabs" aria-label="Pilih rekap"><button className={tab === "participants" ? "active" : ""} aria-pressed={tab === "participants"} onClick={() => setTab("participants")}>Peserta <span>{data.length}</span></button><button className={tab === "ranking" ? "active" : ""} aria-pressed={tab === "ranking"} onClick={() => setTab("ranking")}>Peringkat</button><button className={tab === "questions" ? "active" : ""} aria-pressed={tab === "questions"} onClick={() => setTab("questions")}>Analisis soal</button></div><button className="button secondary export-button" onClick={exportCsv}><ArrowDownToLine size={17}/>Unduh rekap CSV</button></div>
       {tab !== "questions" ? <div className="table-controls"><label className="search-field"><Search size={18} aria-hidden="true"/><input type="search" placeholder="Cari nama peserta" aria-label="Cari nama peserta" value={search} onChange={event => setSearch(event.target.value)}/></label><label className="filter-field">Kelas<select aria-label="Filter kelas" value={classFilter} onChange={event => setClassFilter(event.target.value)}><option value="all">Semua kelas</option><option value="V">Kelas V</option><option value="VI">Kelas VI</option></select></label></div> : null}
       {tab === "participants" ? <>
-        <div className="table-scroll"><table><caption className="sr-only">Rekap hasil peserta {sample ? "contoh" : "kegiatan"}</caption><thead><tr><th>Nama peserta</th><th>Kelas</th><th>Pretest</th><th>Posttest</th><th>Perubahan</th><th>Status</th></tr></thead><tbody>{visible.map(participant => {
+        <div className="table-scroll"><table><caption className="sr-only">Rekap hasil peserta {sample ? "contoh" : "kegiatan"}</caption><thead><tr><th>Nama peserta</th><th>Kelas</th><th>Pretest</th><th>Posttest</th><th>Perubahan</th><th>Status</th>{sample ? null : <th><span className="sr-only">Aksi</span></th>}</tr></thead><tbody>{visible.map(participant => {
           const pre = participant.scores.pretest, post = participant.scores.posttest;
           const progress = (kind: TestKind) => participant[kind] && !participant[kind]!.submittedAt ? `Mengerjakan ${participant[kind]!.answers.filter(answer => answer !== null).length}/10` : "Belum";
-          return <tr key={participant.code}><td className="table-name">{participant.name}</td><td>{participant.className}</td><td>{pre === null ? <span className="score-missing">{progress("pretest")}</span> : `${pre}/10`}</td><td>{post === null ? <span className="score-missing">{progress("posttest")}</span> : `${post}/10`}</td><td>{pre !== null && post !== null ? `${post - pre > 0 ? "+" : ""}${post - pre} poin` : <span className="score-missing">Belum lengkap</span>}</td><td><span className={`status-pill ${post !== null ? "green" : pre !== null ? "blue" : "neutral"}`}>{post !== null ? "Kedua tes selesai" : pre !== null ? "Pretest selesai" : "Belum selesai"}</span></td></tr>;
+          return <tr key={participant.code}><td className="table-name">{participant.name}</td><td>{participant.className}</td><td>{pre === null ? <span className="score-missing">{progress("pretest")}</span> : `${pre}/10`}</td><td>{post === null ? <span className="score-missing">{progress("posttest")}</span> : `${post}/10`}</td><td>{pre !== null && post !== null ? `${post - pre > 0 ? "+" : ""}${post - pre} poin` : <span className="score-missing">Belum lengkap</span>}</td><td><span className={`status-pill ${post !== null ? "green" : pre !== null ? "blue" : "neutral"}`}>{post !== null ? "Kedua tes selesai" : pre !== null ? "Pretest selesai" : "Belum selesai"}</span></td>{sample ? null : <td><button className="button secondary row-action" onClick={() => setEditing(participant)} aria-label={`Ubah data ${participant.name}`}><Pencil size={15}/>Ubah</button></td>}</tr>;
         })}</tbody></table></div>
         {!visible.length ? <Empty title={data.length ? "Tidak ada peserta yang cocok." : "Belum ada peserta terdaftar."} detail={data.length ? "Coba nama lain atau pilih semua kelas." : "Siswa bisa mulai dari Beranda dengan mengisi nama dan kelas."}/> : null}
         <div className="table-footer">Menampilkan {visible.length} dari {data.length} peserta</div>
@@ -141,7 +152,72 @@ function Admin({ rekap, sample, onSample, onPhase, phaseSaving, onLogout, error 
         })}
       </div>}
     </div>
+    {sample ? null : <div className="panel danger-zone"><div><h2>Mulai sesi baru</h2><p>Menghapus semua siswa dan jawaban kegiatan ini, lalu kembali ke tahap Pretest. Unduh rekap CSV dulu bila datanya masih diperlukan.</p></div><button className="button danger-outline" onClick={() => setResetting(true)}><RotateCcw size={18}/>Mulai sesi baru</button></div>}
+    {pendingPhase ? <PhaseDialog from={phase} to={pendingPhase} participants={data} onCancel={() => setPendingPhase(null)} onConfirm={async () => { await onPhase(pendingPhase); setPendingPhase(null); }}/> : null}
+    {editing ? <EditParticipantDialog participant={editing} onClose={() => setEditing(null)} onSaved={async () => { setEditing(null); await onRefresh(); }}/> : null}
+    {resetting ? <ResetDialog total={data.length} onExport={exportCsv} onClose={() => setResetting(false)} onDone={async () => { setResetting(false); await onRefresh(); }}/> : null}
   </section>;
+}
+
+function PhaseDialog({ from, to, participants, onCancel, onConfirm }: { from: Phase; to: Phase; participants: RekapParticipant[]; onCancel: () => void; onConfirm: () => Promise<void> }) {
+  const [busy, setBusy] = useState(false);
+  const working = from === "pretest" || from === "posttest" ? participants.filter(item => item[from] && !item[from]!.submittedAt).length : 0;
+  const noPretest = to === "posttest" ? participants.filter(item => !item.pretest?.submittedAt).length : 0;
+  return <Dialog title={`Ganti tahap ke ${phaseOptions.find(option => option.value === to)!.label}?`} onClose={onCancel}>
+    <p>{phaseEffects[to]} Perubahan sampai ke layar semua siswa dalam beberapa detik.</p>
+    {working ? <p className="dialog-warning"><AlertTriangle size={18} aria-hidden="true"/><span>{working} siswa masih mengerjakan {from}. Jawaban yang sudah dipilih tetap tersimpan, tetapi mereka tidak bisa mengirim sampai {from} dibuka lagi.</span></p> : null}
+    {noPretest ? <p className="dialog-warning"><AlertTriangle size={18} aria-hidden="true"/><span>{noPretest} siswa belum mengirim pretest, jadi belum bisa mengerjakan posttest.</span></p> : null}
+    <div className="modal-actions"><button className="button secondary" onClick={onCancel}>Batal</button><button className="button primary" disabled={busy} onClick={async () => { setBusy(true); await onConfirm(); setBusy(false); }}>{busy ? "Menyimpan..." : phaseActions[to]}</button></div>
+  </Dialog>;
+}
+
+function EditParticipantDialog({ participant, onClose, onSaved }: { participant: RekapParticipant; onClose: () => void; onSaved: () => Promise<void> }) {
+  const [name, setName] = useState(participant.name);
+  const [className, setClassName] = useState<ClassName>(participant.className);
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const answered = (["pretest", "posttest"] as TestKind[]).filter(kind => participant[kind]?.answers.some(answer => answer !== null));
+  async function run(work: () => Promise<unknown>) {
+    setBusy(true); setError("");
+    try { await work(); await onSaved(); } catch (failure) { setError(errorMessage(failure)); setBusy(false); }
+  }
+  return <Dialog title={confirmDelete ? "Hapus siswa?" : "Ubah data siswa"} onClose={onClose}>
+    {confirmDelete ? <>
+      <p className="dialog-warning"><AlertTriangle size={18} aria-hidden="true"/><span>Hapus <strong>{participant.name}</strong> (kelas {participant.className === "V" ? "5" : "6"}){answered.length ? ` beserta jawaban ${answered.join(" dan ")}` : ""}? Data ini tidak bisa dikembalikan.</span></p>
+      {error ? <p className="field-error" role="alert">{error}</p> : null}
+      <div className="modal-actions"><button className="button secondary" onClick={() => setConfirmDelete(false)}>Batal</button><button className="button danger" disabled={busy} onClick={() => run(() => api("/api/pendamping/peserta", { method: "DELETE", body: { id: participant.code } }))}>{busy ? "Menghapus..." : <><Trash2 size={17}/>Ya, hapus siswa</>}</button></div>
+    </> : <form onSubmit={event => { event.preventDefault(); if (!validName(name) || !isClassName(className)) { setError("Nama minimal 2 huruf."); return; } void run(() => api("/api/pendamping/peserta", { method: "PATCH", body: { id: participant.code, name, className } })); }}>
+      <p>Siswa tetap tersambung ke jawabannya. Di perangkatnya, nama baru muncul dalam beberapa detik.</p>
+      <label className="field-label dialog-label" htmlFor="edit-name">Nama lengkap</label>
+      <input id="edit-name" className="name-input" value={name} maxLength={60} autoComplete="off" onChange={event => { setName(event.target.value); setError(""); }}/>
+      <fieldset className="class-options compact"><legend className="field-label dialog-label">Kelas</legend>{(["V", "VI"] as ClassName[]).map(value => <label key={value} className={className === value ? "selected" : ""}><input type="radio" name="edit-class" value={value} checked={className === value} onChange={() => setClassName(value)}/><span className="class-number">{value === "V" ? "5" : "6"}</span><span className="class-name">Kelas {value === "V" ? "5" : "6"}</span></label>)}</fieldset>
+      {error ? <p className="field-error" role="alert">{error}</p> : null}
+      <div className="modal-actions"><button type="button" className="button danger-outline" onClick={() => { setConfirmDelete(true); setError(""); }}><Trash2 size={17}/>Hapus siswa</button><span className="spacer"/><button type="button" className="button secondary" onClick={onClose}>Batal</button><button type="submit" className="button primary" disabled={busy || !validName(name)}>{busy ? "Menyimpan..." : "Simpan"}</button></div>
+    </form>}
+  </Dialog>;
+}
+
+function ResetDialog({ total, onExport, onClose, onDone }: { total: number; onExport: () => void; onClose: () => void; onDone: () => Promise<void> }) {
+  const [phrase, setPhrase] = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const ready = phrase.trim().toUpperCase() === RESET_PHRASE;
+  return <Dialog title="Mulai sesi baru?" onClose={onClose}>
+    <p className="dialog-warning"><AlertTriangle size={18} aria-hidden="true"/><span>{total ? `${total} siswa beserta semua jawaban dan nilainya akan dihapus permanen.` : "Belum ada siswa terdaftar."} Tahap kembali ke Pretest. Siswa yang sedang membuka aplikasi akan diminta mengisi nama lagi.</span></p>
+    {total ? <button className="button secondary full-width" onClick={onExport}><ArrowDownToLine size={17}/>Unduh rekap CSV dulu</button> : null}
+    <form onSubmit={async event => {
+      event.preventDefault(); if (!ready || busy) return;
+      setBusy(true); setError("");
+      try { await api("/api/pendamping/reset", { method: "POST", body: { confirm: phrase } }); await onDone(); }
+      catch (failure) { setError(errorMessage(failure)); setBusy(false); }
+    }}>
+      <label className="field-label dialog-label" htmlFor="reset-phrase">Ketik {RESET_PHRASE} untuk melanjutkan</label>
+      <input id="reset-phrase" className="name-input" value={phrase} autoComplete="off" spellCheck={false} onChange={event => { setPhrase(event.target.value); setError(""); }}/>
+      {error ? <p className="field-error" role="alert">{error}</p> : null}
+      <div className="modal-actions"><button type="button" className="button secondary" onClick={onClose}>Batal</button><button type="submit" className="button danger" disabled={!ready || busy}>{busy ? "Menghapus..." : "Hapus semua dan mulai baru"}</button></div>
+    </form>
+  </Dialog>;
 }
 function Empty({ title, detail }: { title: string; detail: string }) {
   return <div className="empty-table"><strong>{title}</strong><p>{detail}</p></div>;
