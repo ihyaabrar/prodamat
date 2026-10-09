@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Konsep header sesuai referensi pengguna</title>
+<style>
+*{box-sizing:border-box}body{margin:0;padding:32px;background:#edece7;color:#243449;font-family:"Segoe UI",sans-serif}h1,h2,p{margin:0}
+.intro,.boards,.note{max-width:1260px;margin-inline:auto}.intro{margin-bottom:24px}.intro small{font-size:12px;color:#526071}.intro h1{font-size:25px;margin-top:7px;letter-spacing:-.6px}.intro p{font-size:14px;color:#526071;margin-top:9px;line-height:1.6}
+.boards{display:grid;grid-template-columns:minmax(700px,1fr) 330px;gap:26px;align-items:start}.label{font-size:12px;font-weight:700;margin-bottom:12px;color:#526071}.screen{background:#fcfcf8;border:1px solid #cdd3ce;border-radius:16px;overflow:hidden}
+.header{display:flex;align-items:center;justify-content:space-between;gap:26px;background:white;padding:17px 25px;min-height:98px}.institution-left{display:flex;align-items:center;gap:12px;min-width:0}.seal{width:64px;height:64px;flex-shrink:0;object-fit:contain}.divider{width:1px;height:44px;background:#f0b33d;flex-shrink:0}
+.identity{line-height:1.5;min-width:0;color:#092b69}.identity strong{display:block;font-size:17px;font-weight:800;line-height:1.3}.identity span{display:block;font-size:10px;letter-spacing:2.5px;margin-top:3px}.wordmark{display:block;width:184px;height:auto;object-fit:contain;flex-shrink:0}
+.navigation{display:flex;justify-content:flex-end;gap:23px;padding:13px 25px;border-bottom:1px solid #d9ded5;font-size:12px;font-weight:600;min-height:44px}
+.main{padding:32px;display:grid;grid-template-columns:1fr 1.1fr;gap:24px;align-items:center;min-height:470px}.product{font-size:12px;font-weight:700;color:#526071;margin-bottom:15px}.main h2{font-size:34px;letter-spacing:-1px;line-height:1.15}.lead{font-size:14px;color:#526071;line-height:1.7;margin-top:10px}.aiko{display:block;width:200px;height:210px;margin:20px auto 0}
+.form{width:100%;border:1px solid #d9ded5;border-radius:16px;padding:24px;background:white}.field-label{display:block;font-size:13px;font-weight:700;margin-bottom:9px}.input{border:1px solid #9da99b;background:#fcfcf8;border-radius:10px;padding:16px;font-size:15px;color:#526071;min-height:52px}.hint{font-size:11px;color:#526071;line-height:1.6;margin:8px 0 20px}
+.classes{display:flex;gap:12px}.choice{flex:1;border:1px solid #9da99b;border-radius:10px;padding:15px;display:flex;gap:8px;align-items:center;font-size:14px;font-weight:600;min-height:54px}.radio{width:17px;height:17px;border:1px solid #526071;border-radius:50%;display:inline-block;flex-shrink:0}.action{background:#3158df;border-radius:10px;min-height:52px;color:white;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;margin-top:22px}
+.footer{padding:16px 25px;border-top:1px solid #d9ded5;color:#526071;font-size:10px}.under,.note{font-size:12px;color:#526071;line-height:1.7;margin-top:12px}.note{margin-top:22px}
+.mobile .header{padding:14px;gap:12px;min-height:100px}.mobile .institution-left{gap:7px;flex:1}.mobile .seal{width:32px;height:32px}.mobile .divider{height:42px}.mobile .identity strong{font-size:11px;line-height:1.35}.mobile .identity span{font-size:8px;letter-spacing:1px;line-height:1.6}.mobile .wordmark{width:86px}
+.mobile .navigation{padding:11px 14px;gap:19px;font-size:10px;align-items:center}.mobile .main{display:block;padding:25px 16px 22px;min-height:475px}.mobile .product{font-size:11px;margin-bottom:14px}.mobile .main h2{font-size:26px;letter-spacing:-.8px}.mobile .lead{font-size:12px}.mobile .form{padding:18px;margin-top:19px}.mobile .field-label{font-size:12px}.mobile .input{font-size:12px;padding:14px}.mobile .hint{font-size:10px}.mobile .choice{font-size:12px;padding:11px}.mobile .classes{gap:8px}.mobile .footer{padding:14px 16px}
+@media(max-width:1100px){.boards{grid-template-columns:1fr}.desktop{min-width:700px}.mobile{max-width:390px}.screen-wrap:first-child{overflow:auto}}@media(max-width:500px){body{padding:18px}.intro h1{font-size:21px}}
+</style>
+</head>
+<body>
+<div class="intro"><small>USULAN KONSEP · SKETSA STATIS · BELUM DITERAPKAN</small><h1>Identitas prodi di kiri, logo UAD di kanan.</h1><p>Susunan header mengikuti referensi yang Anda kirim.</p></div>
+<div class="boards">
+<div class="screen-wrap">
+<div class="label">Susunan desktop</div>
+<div class="screen desktop">
+<div class="header"><div class="institution-left"><img class="seal" src="/uad.png" alt="Logo UAD bundar dari proposal"><span class="divider" aria-hidden="true"></span><div class="identity"><strong>Program Studi Magister Informatika</strong><span>FAKULTAS TEKNOLOGI INDUSTRI</span></div></div><img class="wordmark" src="/uad-wordmark.png" alt="Logo UAD memanjang di kanan"></div>
+<div class="navigation"><span>Beranda</span><span>Pendamping</span><span>Bantuan</span></div>
+<div class="main"><div class="copy"><div class="product">AI di Sekitar Kita</div><h2>Kenalan dulu, yuk!</h2><p class="lead">Isi nama dan pilih kelasmu.<br>Setelah itu, kita mulai belajar bersama.</p><img class="aiko" src="/aiko.svg" alt="Aiko, maskot yang sudah digunakan"></div><div class="form"><span class="field-label">Nama lengkapmu</span><div class="input">Tulis nama lengkapmu</div><p class="hint">Gunakan nama yang sama saat pretest dan posttest.</p><span class="field-label">Kelasmu</span><div class="classes"><div class="choice"><span class="radio"></span>Kelas 5 (V)</div><div class="choice"><span class="radio"></span>Kelas 6 (VI)</div></div><div class="action">Ayo masuk</div></div></div>
+<div class="footer">PRODAMAT 2026 · SDN Karangsari Yogyakarta</div>
+</div>
+<p class="under">Logo bundar, garis pembatas, dan nama prodi menjadi satu kelompok. Logo UAD memanjang berada di ujung kanan.</p>
+</div>
+<div class="screen-wrap">
+<div class="label">Susunan ponsel</div>
+<div class="screen mobile">
+<div class="header"><div class="institution-left"><img class="seal" src="/uad.png" alt="Logo UAD bundar dari proposal"><span class="divider" aria-hidden="true"></span><div class="identity"><strong>Program Studi Magister Informatika</strong><span>FAKULTAS TEKNOLOGI INDUSTRI</span></div></div><img class="wordmark" src="/uad-wordmark.png" alt="Logo UAD memanjang di kanan"></div>
+<div class="navigation"><span>Beranda</span><span>Pendamping</span><span>Bantuan</span></div>
+<div class="main"><div class="product">AI di Sekitar Kita</div><h2>Kenalan dulu, yuk!</h2><p class="lead">Isi nama dan pilih kelasmu.</p><div class="form"><span class="field-label">Nama lengkapmu</span><div class="input">Tulis nama lengkapmu</div><p class="hint">Gunakan nama yang sama saat posttest.</p><span class="field-label">Kelasmu</span><div class="classes"><div class="choice"><span class="radio"></span>Kelas 5</div><div class="choice"><span class="radio"></span>Kelas 6</div></div><div class="action">Ayo masuk</div></div></div>
+<div class="footer">PRODAMAT 2026 · SDN Karangsari</div>
+</div>
+<p class="under">Kelompok prodi tetap di kiri, logo UAD tetap di kanan. Nama prodi membungkus pada layar kecil.</p>
+</div>
+</div>
+<p class="note">Sketsa layout statis. Logo memakai aset yang tersedia; huruf kapital, jarak huruf fakultas, dan garis pembatas mengikuti referensi pengguna. Navigasi berada di bawah identitas kampus.</p>
+</body>
+</html>

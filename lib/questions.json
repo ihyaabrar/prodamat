@@ -1,0 +1,226 @@
+{
+  "pretest": [
+    {
+      "id": 1,
+      "text": "Apa kepanjangan dari AI?",
+      "options": [
+        "Artificial Internet",
+        "Artificial Intelligence",
+        "Automatic Intelligence",
+        "Advanced Internet"
+      ],
+      "correct": 1
+    },
+    {
+      "id": 2,
+      "text": "AI atau Kecerdasan Buatan adalah teknologi yang membuat komputer dapat...",
+      "options": [
+        "Hanya bermain game",
+        "Melakukan tugas tertentu seperti mengenali pola dan memahami informasi",
+        "Menggantikan semua manusia",
+        "Selalu memberikan jawaban yang benar"
+      ],
+      "correct": 1
+    },
+    {
+      "id": 3,
+      "text": "Manakah yang merupakan contoh penggunaan AI dalam kehidupan sehari-hari?",
+      "options": [
+        "Pensil",
+        "Penggaris",
+        "Google Maps",
+        "Buku tulis"
+      ],
+      "correct": 2
+    },
+    {
+      "id": 4,
+      "text": "Bagaimana AI dapat belajar mengenali sesuatu?",
+      "options": [
+        "Dari banyak contoh atau data",
+        "Dari satu contoh saja",
+        "Tanpa membutuhkan informasi",
+        "Dengan membaca pikiran manusia"
+      ],
+      "correct": 0
+    },
+    {
+      "id": 5,
+      "text": "AI dapat membantu komputer mengenali pola dari...",
+      "options": [
+        "Suara, gambar, dan tulisan",
+        "Hanya angka",
+        "Hanya warna",
+        "Hanya musik"
+      ],
+      "correct": 0
+    },
+    {
+      "id": 6,
+      "text": "Apakah AI selalu memberikan jawaban yang benar?",
+      "options": [
+        "Ya, selalu",
+        "Tidak, AI bisa saja salah",
+        "Hanya AI di HP yang salah",
+        "Hanya AI untuk permainan yang salah"
+      ],
+      "correct": 1
+    },
+    {
+      "id": 7,
+      "text": "Jika mendapatkan jawaban dari AI, sebaiknya kita...",
+      "options": [
+        "Langsung mempercayainya",
+        "Langsung menyebarkannya",
+        "Memeriksa kembali informasi tersebut",
+        "Menganggap semua jawaban AI pasti benar"
+      ],
+      "correct": 2
+    },
+    {
+      "id": 8,
+      "text": "Data manakah yang tidak boleh kita berikan kepada AI?",
+      "options": [
+        "Pertanyaan pelajaran",
+        "Ide membuat cerita",
+        "Password",
+        "Pertanyaan matematika"
+      ],
+      "correct": 2
+    },
+    {
+      "id": 9,
+      "text": "AI sebaiknya digunakan sebagai...",
+      "options": [
+        "Pengganti manusia",
+        "Alat bantu",
+        "Pengganti guru",
+        "Pengganti semua pekerjaan manusia"
+      ],
+      "correct": 1
+    },
+    {
+      "id": 10,
+      "text": "Jika AI memberikan jawaban yang terlihat meyakinkan, kita tetap harus...",
+      "options": [
+        "Memeriksa kebenarannya",
+        "Langsung percaya",
+        "Menyebarkannya",
+        "Mengabaikannya"
+      ],
+      "correct": 0
+    }
+  ],
+  "posttest": [
+    {
+      "id": 1,
+      "text": "Rani bertanya kepada aplikasi AI tentang tugas sekolah. Kemampuan AI yang sedang digunakan adalah...",
+      "options": [
+        "Membantu memahami informasi dan memberikan jawaban",
+        "Membuat makanan",
+        "Mengisi baterai",
+        "Menggantikan guru"
+      ],
+      "correct": 0
+    },
+    {
+      "id": 2,
+      "text": "Mengapa AI membutuhkan banyak contoh atau data untuk belajar?",
+      "options": [
+        "Agar dapat mengenali pola dengan lebih baik",
+        "Agar menjadi manusia",
+        "Agar bisa bermain",
+        "Agar tidak membutuhkan komputer"
+      ],
+      "correct": 0
+    },
+    {
+      "id": 3,
+      "text": "Sebuah HP dapat mengenali wajah seseorang melalui kamera. Hal tersebut merupakan contoh AI yang mengenali...",
+      "options": [
+        "Suara",
+        "Gambar/wajah",
+        "Tulisan",
+        "Rasa"
+      ],
+      "correct": 1
+    },
+    {
+      "id": 4,
+      "text": "Ketika YouTube memberikan rekomendasi video kepada pengguna, hal tersebut merupakan salah satu contoh...",
+      "options": [
+        "Penggunaan AI",
+        "Penggunaan buku",
+        "Penggunaan kalkulator",
+        "Penggunaan printer"
+      ],
+      "correct": 0
+    },
+    {
+      "id": 5,
+      "text": "Dika bertanya kepada AI. AI memberikan jawaban yang ternyata salah. Apa yang seharusnya dilakukan Dika?",
+      "options": [
+        "Tetap percaya karena AI tidak pernah salah",
+        "Memeriksa kembali informasi tersebut",
+        "Menyalahkan temannya",
+        "Menyebarkan jawaban tersebut"
+      ],
+      "correct": 1
+    },
+    {
+      "id": 6,
+      "text": "Perhatikan berikut: (1) Suara, (2) Wajah, (3) Tulisan, (4) Password. Yang termasuk pola yang dapat dikenali AI berdasarkan materi adalah...",
+      "options": [
+        "1, 2, dan 3",
+        "1 dan 4",
+        "2 dan 4",
+        "Semua benar"
+      ],
+      "correct": 0
+    },
+    {
+      "id": 7,
+      "text": "Siti ingin meminta bantuan AI untuk membuat ide cerita. Apa yang sebaiknya dilakukan?",
+      "options": [
+        "Memberikan password agar AI mengenalnya",
+        "Memberikan alamat rumah",
+        "Meminta AI membantu membuat ide cerita",
+        "Memberikan nomor HP"
+      ],
+      "correct": 2
+    },
+    {
+      "id": 8,
+      "text": "Manakah tindakan yang paling bijak ketika menggunakan AI?",
+      "options": [
+        "Mempercayai semua jawaban AI",
+        "Memberikan semua data pribadi kepada AI",
+        "Memeriksa kembali informasi dan menjaga data pribadi",
+        "Membiarkan AI mengerjakan semuanya"
+      ],
+      "correct": 2
+    },
+    {
+      "id": 9,
+      "text": "Pernyataan manakah yang paling tepat?",
+      "options": [
+        "AI selalu benar",
+        "AI tidak pernah membuat kesalahan",
+        "AI dapat membantu manusia, tetapi manusia tetap perlu berpikir",
+        "AI tidak membutuhkan data untuk belajar"
+      ],
+      "correct": 2
+    },
+    {
+      "id": 10,
+      "text": "Setelah mengikuti pelatihan ini, penggunaan AI yang paling bijak adalah...",
+      "options": [
+        "Menggunakan AI sebagai alat bantu sambil tetap berpikir dan memeriksa informasi",
+        "Menggunakan AI untuk semua hal tanpa berpikir",
+        "Memberikan password kepada AI",
+        "Menganggap AI sebagai pengganti manusia"
+      ],
+      "correct": 0
+    }
+  ]
+}
