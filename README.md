@@ -48,6 +48,13 @@ Seluruh 20 soal dan kunci di `lib/questions.json` diimpor dari `Pretest_Posttest
 
 Tahap berikutnya adalah menghubungkan API, database, dan autentikasi admin sebelum deployment kegiatan ke Vercel.
 
+## Deployment
+
+- Repo: https://github.com/ihyaabrar/prodamat (privat). Setiap push ke `main` di-deploy otomatis oleh proyek Vercel `ihyaabrars-projects/prodamat`.
+- Region fungsi `sin1` (Singapura) diatur di `vercel.json`, sama dengan database Neon `prodamat-db`.
+- Variabel database (`DATABASE_URL` dan lainnya) dikelola Vercel. Untuk lokal: `npx vercel env pull .env.local`. Jangan commit file `.env*`.
+- Paket Hobby hanya men-deploy commit yang penulisnya terhubung ke akun GitHub pemilik. Repo ini memakai email noreply GitHub di konfigurasi git lokal.
+
 ## Peringkat dan identitas
 
 Peringkat pendamping menggunakan nilai posttest tertinggi dari pasangan tes lengkap. Nilai seri berbagi peringkat (1, 1, 3); urutan nama hanya untuk tampilan. Peringkat sementara menjadi akhir saat sesi ditutup. CSV menyertakan nama, kelas, peringkat, nilai, dan jawaban; nama yang menyerupai formula dinetralkan.
