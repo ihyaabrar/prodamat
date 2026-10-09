@@ -8,3 +8,4 @@ tmp/
 .claude/
 .agents/
 skills-lock.json
+council-out/

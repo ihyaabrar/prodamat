@@ -202,20 +202,26 @@ function ResetDialog({ total, onExport, onClose, onDone }: { total: number; onEx
   const [phrase, setPhrase] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [sure, setSure] = useState(false);
   const ready = phrase.trim().toUpperCase() === RESET_PHRASE;
+  async function reset() {
+    setBusy(true); setError("");
+    try { await api("/api/pendamping/reset", { method: "POST", body: { confirm: phrase } }); await onDone(); }
+    catch (failure) { setError(errorMessage(failure)); setBusy(false); }
+  }
+  // Langkah terakhir: pertanyaan "yakin?" setelah kalimat konfirmasi diketik.
+  if (sure) return <Dialog title="Apakah kamu yakin?" onClose={onClose}>
+    <p className="dialog-warning"><AlertTriangle size={18} aria-hidden="true"/><span>{total ? `Semua data ${total} siswa akan hilang dan tidak bisa dikembalikan.` : "Tahap akan kembali ke Pretest."} Pastikan rekap CSV sudah diunduh bila masih diperlukan.</span></p>
+    {error ? <p className="field-error" role="alert">{error}</p> : null}
+    <div className="modal-actions"><button className="button secondary" onClick={() => setSure(false)} disabled={busy}>Tidak, kembali</button><button className="button danger" onClick={reset} disabled={busy}>{busy ? "Menghapus..." : "Ya, saya yakin"}</button></div>
+  </Dialog>;
   return <Dialog title="Mulai sesi baru?" onClose={onClose}>
     <p className="dialog-warning"><AlertTriangle size={18} aria-hidden="true"/><span>{total ? `${total} siswa beserta semua jawaban dan nilainya akan dihapus permanen.` : "Belum ada siswa terdaftar."} Tahap kembali ke Pretest. Siswa yang sedang membuka aplikasi akan diminta mengisi nama lagi.</span></p>
     {total ? <button className="button secondary full-width" onClick={onExport}><ArrowDownToLine size={17}/>Unduh rekap CSV dulu</button> : null}
-    <form onSubmit={async event => {
-      event.preventDefault(); if (!ready || busy) return;
-      setBusy(true); setError("");
-      try { await api("/api/pendamping/reset", { method: "POST", body: { confirm: phrase } }); await onDone(); }
-      catch (failure) { setError(errorMessage(failure)); setBusy(false); }
-    }}>
+    <form onSubmit={event => { event.preventDefault(); if (ready) setSure(true); }}>
       <label className="field-label dialog-label" htmlFor="reset-phrase">Ketik {RESET_PHRASE} untuk melanjutkan</label>
       <input id="reset-phrase" className="name-input" value={phrase} autoComplete="off" spellCheck={false} onChange={event => { setPhrase(event.target.value); setError(""); }}/>
-      {error ? <p className="field-error" role="alert">{error}</p> : null}
-      <div className="modal-actions"><button type="button" className="button secondary" onClick={onClose}>Batal</button><button type="submit" className="button danger" disabled={!ready || busy}>{busy ? "Menghapus..." : "Hapus semua dan mulai baru"}</button></div>
+      <div className="modal-actions"><button type="button" className="button secondary" onClick={onClose}>Batal</button><button type="submit" className="button danger" disabled={!ready}>Lanjutkan</button></div>
     </form>
   </Dialog>;
 }
