@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ShieldCheck, X } from "lucide-react";
+import { X } from "lucide-react";
 import { blankAnswers, canStart, type ClassName, type Me, type PublicQuestion, type Results as ResultData, type TestKind } from "@/lib/model";
 import { api, errorMessage, errorStatus } from "@/lib/api";
 import { Home } from "./home";
@@ -11,6 +11,7 @@ import { AdminApp } from "./admin";
 import { Dialog } from "./dialog";
 import { InstitutionHeader } from "./institution-header";
 import { StateMessage } from "./state-message";
+import { Aiko, AikoIcon } from "./robot";
 
 type Screen = "home" | "join" | "hub" | "intro" | "quiz" | "complete" | "results";
 export type SaveState = "idle" | "saving" | "saved" | "error";
@@ -25,7 +26,7 @@ export function Experience({ admin = false }: { admin?: boolean }) {
   return <div className="app-shell"><a className="skip-link" href="#main">Langsung ke isi</a><InstitutionHeader admin={admin} onHelp={() => setHelp(true)} onHome={() => setHome(value => value + 1)}/>
     <main id="main" ref={mainRef} tabIndex={-1}>{admin ? <AdminApp/> : <StudentApp mainRef={mainRef} homeSignal={home}/>}</main>
     <footer className="site-footer content-width"><span>PRODAMAT 2026 · Magister Informatika UAD</span><span>Jawaban tersimpan di server kegiatan</span></footer>
-    {help ? <Dialog title="Aiko siap membantu!" onClose={() => setHelp(false)}><div className="help-content"><p><strong>Bagaimana cara mulai?</strong><br/>Klik “Mulai petualangan”, isi namamu dan pilih kelas. Gunakan nama dan kelas yang sama saat posttest agar hasilmu tersambung.</p><p><strong>Posttest masih terkunci?</strong><br/>Selesaikan pretest dulu. Pendamping akan membuka posttest setelah materi dan permainan.</p><p><strong>Perlu bantuan membaca soal?</strong><br/>Angkat tangan dan panggil kakak pendamping. Tidak perlu buru-buru.</p><div className="privacy-note"><ShieldCheck size={20}/><span>Yang disimpan hanya nama, kelas, dan jawabanmu. Tidak perlu email atau kata sandi.</span></div></div><button className="button primary full-width" onClick={() => setHelp(false)}>Oke, mengerti</button></Dialog> : null}
+    {help ? <Dialog title="Aiko siap membantu!" onClose={() => setHelp(false)}><Aiko pose="idle" className="help-aiko"/><div className="help-content"><p><strong>Bagaimana cara mulai?</strong><br/>Klik “Mulai petualangan”, isi namamu dan pilih kelas. Gunakan nama dan kelas yang sama saat posttest agar hasilmu tersambung.</p><p><strong>Posttest masih terkunci?</strong><br/>Selesaikan pretest dulu. Pendamping akan membuka posttest setelah materi dan permainan.</p><p><strong>Perlu bantuan membaca soal?</strong><br/>Angkat tangan dan panggil kakak pendamping. Tidak perlu buru-buru.</p><div className="privacy-note"><AikoIcon name="safe-data"/><span>Yang disimpan hanya nama, kelas, dan jawabanmu. Tidak perlu email atau kata sandi.</span></div></div><button className="button primary full-width" onClick={() => setHelp(false)}>Oke, mengerti</button></Dialog> : null}
   </div>;
 }
 
@@ -75,7 +76,7 @@ function StudentApp({ mainRef, homeSignal }: { mainRef: React.RefObject<HTMLElem
     document.addEventListener("visibilitychange", tick);
     return () => { window.clearInterval(timer); document.removeEventListener("visibilitychange", tick); };
   }, [load]);
-  useEffect(() => { if (me) { mainRef.current?.focus({ preventScroll: true }); window.scrollTo({ top: 0, behavior: "instant" }); } }, [screen, !!me]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (me && screen !== "quiz") { mainRef.current?.focus({ preventScroll: true }); window.scrollTo({ top: 0, behavior: "instant" }); } }, [screen, !!me]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const participant = me?.participant ?? null;
   const phase = me?.phase ?? "pretest";

@@ -1,0 +1,6 @@
+{
+  "name": "AI di Sekitar Kita / Aiko",
+  "colors": { "paper": "#fbf9f3", "ink": "#1f2d44", "blue": "#3158df", "blueDark": "#2244bd", "blueWash": "#eef2ff", "yellow": "#ffc94d", "green": "#1d6b44", "ice": "#c4e0ef", "face": "#193951", "eyes": "#c3f5ef", "cheeks": "#ffb9ad" },
+  "shape": { "radius": 20, "stroke": "rounded", "material3d": "soft matte plastic" },
+  "motion": { "feedback": "finite", "idle": "opt-in", "reducedMotion": "static pose", "avoidDuringQuestions": true }
+}

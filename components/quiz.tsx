@@ -14,11 +14,17 @@ export function Quiz({ participant, kind, questions, save, submitting, onRetry, 
   const [index, setIndex] = useState(() => { const first = answers.findIndex(answer => answer === null); return first < 0 ? 0 : first; });
   const [review, setReview] = useState(false);
   const headingRef = useRef<HTMLLegendElement>(null);
-  useEffect(() => { headingRef.current?.focus(); }, [index]);
+  const sectionRef = useRef<HTMLElement>(null);
+  // Di layar pendek (Chromebook) header kampus digulir keluar agar soal, pilihan, dan tombol Lanjut muat satu layar.
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (section) window.scrollTo({ top: section.scrollHeight > window.innerHeight - 163 ? section.getBoundingClientRect().top + window.scrollY : 0, behavior: "instant" });
+    headingRef.current?.focus({ preventScroll: true });
+  }, [index]);
   const question = questions[index];
   const answered = answers.filter(answer => answer !== null).length;
   const navigate = (next: number) => { setIndex(next); setReview(false); };
-  return <section className="quiz-layout content-width">
+  return <section className="quiz-layout content-width" ref={sectionRef}>
     <div className="quiz-top">
       <button className="text-button" onClick={onExit}><ArrowLeft size={18}/> Simpan & keluar</button>
       <h1 className="quiz-title">{kind === "pretest" ? "Pretest" : "Posttest"}<span> · {participant.name}</span></h1>

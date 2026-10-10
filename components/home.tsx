@@ -1,5 +1,5 @@
-import { ArrowRight, Check, ClipboardCheck, ClipboardList, MousePointerClick, PencilLine, Search, Send } from "lucide-react";
-import { Robot } from "./robot";
+import { ArrowRight, Check, ClipboardCheck, ClipboardList, MousePointerClick, PencilLine, Send } from "lucide-react";
+import { Aiko, AikoIcon } from "./robot";
 
 export function Home({ onStart, returning }: { onStart: () => void; returning: boolean }) {
   return <>
@@ -16,7 +16,7 @@ export function Home({ onStart, returning }: { onStart: () => void; returning: b
       </div>
       <figure className="hero-art">
         <figcaption className="hero-bubble"><strong>Hai, aku Aiko!</strong> Aku menemanimu belajar hari ini. Belum tahu jawabannya? Tidak apa-apa.</figcaption>
-        <Robot wave/>
+        <Aiko pose="wave"/>
       </figure>
     </section>
 
@@ -24,7 +24,7 @@ export function Home({ onStart, returning }: { onStart: () => void; returning: b
       <h2 id="journey-title">Petualangan hari ini</h2>
       <ol className="journey">
         <li className="stop"><span className="stop-token" aria-hidden="true"><ClipboardList size={26} strokeWidth={2.3}/></span><div><span className="stop-step">Langkah 1 · Pretest</span><h3>Apa yang sudah kamu tahu?</h3><p>10 soal sebelum belajar.</p></div></li>
-        <li className="stop"><span className="stop-token" aria-hidden="true"><Search size={26} strokeWidth={2.3}/></span><div><span className="stop-step">Langkah 2 · Belajar</span><h3>Jadi Detektif AI</h3><p>Materi dan permainan bersama kakak pendamping.</p></div></li>
+        <li className="stop"><span className="stop-token art" aria-hidden="true"><AikoIcon name="ai-detective"/></span><div><span className="stop-step">Langkah 2 · Belajar</span><h3>Jadi Detektif AI</h3><p>Materi dan permainan bersama kakak pendamping.</p></div></li>
         <li className="stop"><span className="stop-token" aria-hidden="true"><ClipboardCheck size={26} strokeWidth={2.3}/></span><div><span className="stop-step">Langkah 3 · Posttest</span><h3>Apa yang kamu pelajari?</h3><p>10 soal setelah pendamping membukanya.</p></div></li>
       </ol>
     </section>

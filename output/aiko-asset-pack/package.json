@@ -1,0 +1,8 @@
+{
+  "name": "aiko-asset-pack",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": { "start": "node serve.mjs", "generate": "node tools/generate.mjs", "export:3d": "node tools/export-model.mjs", "verify": "node tools/verify.mjs" },
+  "devDependencies": { "three": "0.186.1", "sharp": "0.34.5", "gltf-validator": "2.0.0-dev.3.10" }
+}

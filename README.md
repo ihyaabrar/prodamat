@@ -76,3 +76,7 @@ Nama Program Studi Magister Informatika dan Fakultas Teknologi Industri mengikut
 Seluruh halaman memakai desain yang konsisten: Nunito, latar terang, biru sebagai tindakan utama, aksen emas untuk hasil, dan Aiko sebagai teman belajar. Form di ponsel mendahulukan nama dan kelas; soal tampil satu per layar; hasil menonjolkan posttest. Dashboard mendahulukan sesi, lalu jumlah peserta dan rekap. Rata-rata ada pada tab Analisis soal.
 
 Arah Anti-Slop During serta keputusan desain tercatat di `output/ui-concept/konsep-ui.md`; bukti pemeriksaan implementasi ada di `output/ui-concept/delivery-gate.md`.
+
+## Aset Aiko
+
+Pose dan ikon Aiko berasal dari paket aset 2D di `output/aiko-asset-pack` (manifest menjelaskan kegunaan tiap pose). `node scripts/build-aiko.mjs` menyalin SVG animasi dan ikon ke `lib/aiko-art.ts`; jalankan ulang bila paket aset diperbarui. Pose dipilih per layar: melambai saat menyapa dan posttest dibuka, membaca saat waktu belajar dan menunggu pembahasan, berpikir sebelum latihan, merayakan setelah tes terkirim, menenangkan saat ada gangguan. Aiko tidak ditampilkan di layar soal. Animasi berjalan sekali dan berhenti untuk prefers-reduced-motion. Model 3D di paket aset tidak dipakai.

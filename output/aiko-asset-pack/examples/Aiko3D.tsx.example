@@ -1,0 +1,21 @@
+// Manual integration example only; this file is not part of the application.
+// Adjust the module/fallback paths after copying the selected assets.
+"use client";
+import { useEffect, useRef } from "react";
+type Pose = "Idle" | "Wave" | "Think" | "Read" | "Celebrate" | "Reassure";
+export function Aiko3D({ pose = "Wave", animate = false }: { pose?: Pose; animate?: boolean }) {
+  const host = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    let cancelled = false;
+    let cleanup: (() => void) | undefined;
+    void import("../three/mount-aiko.mjs").then(({ mountAiko }) => {
+      if (cancelled || !host.current) return;
+      const viewer = mountAiko(host.current, {
+        pose, animate, fallback: "/aiko/aiko-wave.svg",
+      });
+      cleanup = () => viewer.dispose();
+    });
+    return () => { cancelled = true; cleanup?.(); };
+  }, [pose, animate]);
+  return <div ref={host} style={{ width: 240, height: 260 }} />;
+}

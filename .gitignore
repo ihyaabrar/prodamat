@@ -9,3 +9,5 @@ tmp/
 .agents/
 skills-lock.json
 council-out/
+output/aiko-asset-pack/node_modules/
+output/*.zip

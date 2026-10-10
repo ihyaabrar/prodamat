@@ -1,0 +1,96 @@
+{
+  "version": 1,
+  "robot": [
+    {
+      "id": "idle",
+      "label": "Siap menemani",
+      "use": "Menunggu mulai atau halaman bantuan",
+      "motion": "Napas kecil dan kedipan, 2 putaran",
+      "static": "svg/static/aiko-idle.svg",
+      "animated": "svg/animated/aiko-idle.svg",
+      "png": "png/512/aiko-idle.png"
+    },
+    {
+      "id": "wave",
+      "label": "Halo, teman!",
+      "use": "Sapaan di beranda atau setelah isi nama",
+      "motion": "Melambai 3 kali, lalu berhenti",
+      "static": "svg/static/aiko-wave.svg",
+      "animated": "svg/animated/aiko-wave.svg",
+      "png": "png/512/aiko-wave.png"
+    },
+    {
+      "id": "thinking",
+      "label": "Yuk, pikirkan",
+      "use": "Petunjuk sebelum menjawab",
+      "motion": "Miringkan kepala 2 kali",
+      "static": "svg/static/aiko-thinking.svg",
+      "animated": "svg/animated/aiko-thinking.svg",
+      "png": "png/512/aiko-thinking.png"
+    },
+    {
+      "id": "reading",
+      "label": "Ayo belajar",
+      "use": "Materi atau jeda antara tes",
+      "motion": "Buku bergoyang pelan 2 kali",
+      "static": "svg/static/aiko-reading.svg",
+      "animated": "svg/animated/aiko-reading.svg",
+      "png": "png/512/aiko-reading.png"
+    },
+    {
+      "id": "celebrate",
+      "label": "Kamu selesai!",
+      "use": "Setelah berhasil mengirim tes",
+      "motion": "Dua lompatan dan konfeti sekali",
+      "static": "svg/static/aiko-celebrate.svg",
+      "animated": "svg/animated/aiko-celebrate.svg",
+      "png": "png/512/aiko-celebrate.png"
+    },
+    {
+      "id": "reassure",
+      "label": "Coba lagi, yuk",
+      "use": "Jawaban belum lengkap atau butuh bantuan",
+      "motion": "Anggukan lembut 2 kali",
+      "static": "svg/static/aiko-reassure.svg",
+      "animated": "svg/animated/aiko-reassure.svg",
+      "png": "png/512/aiko-reassure.png"
+    }
+  ],
+  "icons": [
+    {
+      "id": "ai-detective",
+      "label": "Detektif AI",
+      "use": "Materi mencari contoh AI",
+      "svg": "svg/icons/ai-detective.svg"
+    },
+    {
+      "id": "safe-data",
+      "label": "Data tetap aman",
+      "use": "Penjelasan privasi anak",
+      "svg": "svg/icons/safe-data.svg"
+    },
+    {
+      "id": "learning-complete",
+      "label": "Tes selesai",
+      "use": "Konfirmasi setelah data terkirim",
+      "svg": "svg/icons/learning-complete.svg"
+    },
+    {
+      "id": "ai-pattern",
+      "label": "Belajar pola",
+      "use": "Materi mengenali pola dan data",
+      "svg": "svg/icons/ai-pattern.svg"
+    }
+  ],
+  "model": {
+    "file": "three/aiko.glb",
+    "clips": [
+      "Idle",
+      "Wave",
+      "Think",
+      "Read",
+      "Celebrate",
+      "Reassure"
+    ]
+  }
+}
