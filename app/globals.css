@@ -431,7 +431,7 @@ th:last-child:has(.sr-only) { background: #f5f7fa; }
   .hero { padding: 40px; }
   .hero-art { margin-bottom: -40px; }
   .hero-art .robot { width: 250px; }
-  .hero-art .aiko3d.is-bust { width: 260px; height: 236px; }
+  .hero-art .aiko3d.is-bust { width: 260px; height: 236px; margin-right: -78px; }
   .hero-art::before { width: 290px; height: 145px; right: -14px; }
   .how-section { grid-template-columns: 1fr; gap: 24px; }
   .journey-live { grid-template-columns: 1fr; }
