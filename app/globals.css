@@ -115,6 +115,7 @@ main { flex: 1; }
 .aiko3d.is-bust > .aiko3d-fallback { position: absolute; left: -30%; top: -2%; width: 165% !important; max-width: none; transform: rotate(-5deg); transform-origin: 50% 100%; }
 .aiko3d.is-bust .aiko3d-layer { inset: -24% -34% 0 -34%; }
 .aiko3d.is-bust .aiko3d-tap { inset: 4% 10% 0; border-radius: 40% 40% 0 0; }
+.aiko3d.is-bust .aiko3d-tap:focus-visible { outline-offset: -3px; }
 .hero-bubble { position: relative; z-index: 1; max-width: 280px; margin-bottom: -28px; padding: 14px 18px; background: #fff; color: var(--ink); border-radius: 20px 20px 6px 20px; font-size: 16px; line-height: 1.45; }
 .hero-bubble strong { display: block; font-size: 18px; }
 .journey-section { padding-block: 56px 20px; }
