@@ -108,14 +108,14 @@ main { flex: 1; }
 .hero-reassurance { margin-top: 18px; color: #e4eaff; font-size: 15px; font-weight: 700; }
 #main { overflow-x: clip; }
 /* Kotak biru sebagai layar: Aiko muncul dari tepi bawah (badan terpotong), tangan kanannya keluar melewati tepi kanan. */
-.hero-art { position: relative; align-self: stretch; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; margin-bottom: -44px; }
+.hero-art { position: relative; align-self: stretch; display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-start; margin-bottom: -44px; }
 .hero-art::before { content: ""; position: absolute; bottom: 0; right: -20px; width: 340px; height: 170px; border-radius: 170px 170px 0 0; background: #4669e3; }
 .hero-art .robot { position: relative; width: 290px; }
-.hero-art .aiko3d.is-bust { align-self: flex-end; width: 300px; height: 270px; margin: 12px -128px 0 0; clip-path: inset(-80% -80% 0 -80%); }
+.hero-art .aiko3d.is-bust { flex: none; align-self: flex-end; width: 300px; height: 270px; margin: 12px -128px 0 0; clip-path: inset(-80% -80% 0 -80%); }
 .aiko3d.is-bust > .aiko3d-fallback { position: absolute; left: -30%; top: -2%; width: 165% !important; max-width: none; transform: rotate(-5deg); transform-origin: 50% 100%; }
 .aiko3d.is-bust .aiko3d-layer { inset: -24% -34% 0 -34%; }
 .aiko3d.is-bust .aiko3d-tap { inset: 4% 10% 0; border-radius: 40% 40% 0 0; }
-.hero-bubble { position: relative; z-index: 1; align-self: flex-start; max-width: 290px; margin-bottom: -10px; padding: 14px 18px; background: #fff; color: var(--ink); border-radius: 20px 20px 6px 20px; font-size: 16px; line-height: 1.45; }
+.hero-bubble { position: relative; z-index: 1; max-width: 280px; margin-bottom: -28px; padding: 14px 18px; background: #fff; color: var(--ink); border-radius: 20px 20px 6px 20px; font-size: 16px; line-height: 1.45; }
 .hero-bubble strong { display: block; font-size: 18px; }
 .journey-section { padding-block: 56px 20px; }
 .journey-section h2 { font-size: 30px; }
@@ -432,6 +432,7 @@ th:last-child:has(.sr-only) { background: #f5f7fa; }
   .hero-art { margin-bottom: -40px; }
   .hero-art .robot { width: 250px; }
   .hero-art .aiko3d.is-bust { width: 260px; height: 236px; margin-right: -78px; }
+  .hero-bubble { max-width: 236px; margin-bottom: 34px; font-size: 15px; }
   .hero-art::before { width: 290px; height: 145px; right: -14px; }
   .how-section { grid-template-columns: 1fr; gap: 24px; }
   .journey-live { grid-template-columns: 1fr; }
@@ -456,7 +457,7 @@ th:last-child:has(.sr-only) { background: #f5f7fa; }
   .hero-art::before { width: 240px; height: 120px; left: auto; right: 0; transform: none; }
   .hero-art .robot { width: 190px; }
   .hero-art .aiko3d.is-bust { flex: none; width: 210px; height: 190px; margin-right: -64px; }
-  .hero-bubble { align-self: center; margin: 0 52px 40px 0; max-width: 240px; font-size: 15px; }
+  .hero-bubble { margin: 0 52px 96px 0; flex-basis: 240px; font-size: 15px; }
   .journey { grid-template-columns: 1fr; gap: 22px; }
   .journey::before { display: none; }
   .journey .stop:not(:last-child)::after { content: ""; position: absolute; top: 62px; bottom: -22px; left: 28px; border-left: 4px dashed #bfcbf3; }
@@ -499,7 +500,7 @@ th:last-child:has(.sr-only) { background: #f5f7fa; }
   .hero-art .robot { width: 112px; }
   .hero-art .aiko3d.is-bust { width: 140px; height: 128px; margin-right: -22px; }
   .hero-art::before { width: 150px; height: 75px; right: -12px; }
-  .hero-bubble { margin: 0 12px 30px 0; max-width: none; flex: 1; font-size: 14px; padding: 12px 14px; }
+  .hero-bubble { margin: 0 12px 58px 0; flex: 1; font-size: 14px; padding: 12px 14px; }
   .hero-bubble strong { font-size: 16px; }
   .journey-section { padding-block: 36px 8px; }
   .journey-section h2 { font-size: 26px; }
