@@ -2,7 +2,7 @@
 
 <img src="public/branding/uad.png" alt="Logo Universitas Ahmad Dahlan" width="88">
 &nbsp;&nbsp;&nbsp;
-<img src="output/aiko-asset-pack/svg/static/aiko-wave.svg" alt="Aiko, maskot AI di Sekitar Kita" width="104">
+<img src="docs/aiko-3d.webp" alt="Aiko 3D, maskot AI di Sekitar Kita, melambai" width="104">
 &nbsp;&nbsp;&nbsp;
 <img src="public/branding/uad-wordmark.png" alt="Universitas Ahmad Dahlan" width="210">
 

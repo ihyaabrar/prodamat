@@ -13,14 +13,21 @@ const SLOW_KEY = "prodamat.aiko3d.lambat";
 // ?aiko3d=paksa melewati pemeriksaan perangkat dan uji kelancaran, untuk meninjau; fps hasil ukur dicatat di console.
 const forced = () => new URLSearchParams(location.search).get("aiko3d") === "paksa";
 
-function eligible() {
-  if (forced()) return true;
-  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return false;
+// Mengembalikan alasan Aiko tetap 2D, atau null bila boleh 3D. Alasannya dicatat sekali di console untuk gladi.
+function blocked(): string | null {
+  if (forced()) return null;
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return "pengaturan kurangi gerak aktif (di Windows: Efek animasi mati)";
   const nav = navigator as Navigator & { deviceMemory?: number; connection?: { saveData?: boolean; effectiveType?: string } };
-  if (nav.connection?.saveData || /2g$/.test(nav.connection?.effectiveType ?? "")) return false;
-  if (nav.deviceMemory && nav.deviceMemory <= 2) return false;
-  try { if (sessionStorage.getItem(SLOW_KEY)) return false; } catch {}
-  return true;
+  if (nav.connection?.saveData || /2g$/.test(nav.connection?.effectiveType ?? "")) return "mode hemat data atau jaringan 2G";
+  if (nav.deviceMemory && nav.deviceMemory <= 2) return "memori perangkat 2 GB atau kurang";
+  try { if (sessionStorage.getItem(SLOW_KEY)) return "render tersendat di perangkat ini (tutup tab untuk mencoba lagi)"; } catch {}
+  return null;
+}
+let reported = false;
+function eligible() {
+  const reason = blocked();
+  if (reason && !reported) { reported = true; console.info(`Aiko tetap 2D: ${reason}. Tambahkan ?aiko3d=paksa untuk meninjau 3D.`); }
+  return !reason;
 }
 
 // framing "bust": hanya kepala dan dada, dipotong tepi bawah wadah; tangan boleh keluar dari wadah (dipakai di Beranda).
@@ -37,7 +44,8 @@ export function Aiko3D({ pose, enabled, replay = 0, className = "", onTap, tapLa
     if (!enabled || !element || !eligible()) return;
     let cancelled = false;
     const start = () => import("@/lib/aiko3d/engine").then(({ getEngine, webglAvailable }) => {
-      if (cancelled || !webglAvailable()) return;
+      if (cancelled) return;
+      if (!webglAvailable()) { console.info("Aiko tetap 2D: WebGL tidak tersedia."); return; }
       const instance = getEngine();
       engine.current = instance;
       const lost = () => { instance.unmount(element); engine.current = null; setLive(false); };
