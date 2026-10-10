@@ -39,8 +39,8 @@ function createEngine() {
   // Dua bingkai: "full" untuk Aiko utuh, "bust" untuk kepala dan dada yang muncul dari tepi bawah kotak biru Beranda.
   const FRAMING = {
     full: { camera: [0, 0.05, 8.9], look: [0, -0.22, 0], turn: 0, tilt: 0, ground: true, rest: REST },
-    // Tangan kanan bertumpu keluar melewati tepi kanan kotak, seperti anak yang berpegangan di bingkai jendela.
-    bust: { camera: [0.77, 0.3, 5.7], look: [0.77, -0.05, 0], turn: -0.3, tilt: -0.08, ground: false, rest: { ...REST, rz: 1.6, rx: -0.75, wristR: -0.5 } },
+    // Tangan kiri sedikit terbuka; tangan kanan keluar melewati tepi kanan kotak, seperti menyapa dari balik layar.
+    bust: { camera: [0.77, 0.3, 5.7], look: [0.77, -0.05, 0], turn: -0.3, tilt: -0.08, ground: false, rest: { ...REST, lz: -0.7, lx: -0.25, rz: 1.6, rx: -0.75, wristR: -0.5 } },
   } satisfies Record<string, { camera: [number, number, number]; look: [number, number, number]; turn: number; tilt: number; ground: boolean; rest: Values }>;
   type Framing = keyof typeof FRAMING;
   let rest: Values = REST;
