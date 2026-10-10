@@ -18,7 +18,7 @@ PRODAMAT 2026 · Kelompok 2 · Magister Informatika, Universitas Ahmad Dahlan
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178c6?logo=typescript&logoColor=white)
 ![Neon Postgres](https://img.shields.io/badge/Neon_Postgres-00e599?logo=postgresql&logoColor=black)
 ![Vercel](https://img.shields.io/badge/Vercel-sin1-000000?logo=vercel&logoColor=white)
-![Uji API](https://img.shields.io/badge/uji_API-34_skenario-1d6b44)
+![Uji API](https://img.shields.io/badge/uji_API-36_skenario-1d6b44)
 
 [Tentang](#tentang-kegiatan) · [Tampilan](#tampilan) · [Fitur](#fitur) · [Arsitektur](#arsitektur) · [Menjalankan](#menjalankan-di-komputer) · [Hari-H](#persiapan-hari-h) · [Tim](#tim-kelompok-2)
 
@@ -61,6 +61,7 @@ Anak mengerjakan **tes awal (pretest)** sebelum materi, mengikuti materi dan per
 
 - **Masuk tanpa kata sandi.** Cukup nama dan kelas; nama dan kelas yang sama di Chromebook mana pun melanjutkan pekerjaan yang sama.
 - **Aiko sebagai pemandu.** Satu gelembung, satu instruksi per layar. Pose berganti sesuai situasi: melambai, membaca, berpikir, merayakan, menenangkan. Aiko tidak tampil di layar soal agar anak fokus.
+- **Aiko 3D sebagai pemanis.** Di beranda, halaman petualangan, layar selesai, dan hasil, Aiko 2D berganti menjadi Aiko 3D (three.js) yang bergerak, bisa diketuk, dan menoleh mengikuti kursor. Otomatis tetap 2D bila perangkat lambat, tanpa WebGL, atau memakai kurangi gerak; pendamping bisa mematikannya dari dashboard. Konsep: `output/ui-concept/konsep-aiko-3d.md`.
 - **Jalur petualangan.** Langkah yang sedang dibuka berwarna biru dengan tombol, langkah selesai hijau, langkah terkunci menyebut alasannya.
 - **Jawaban aman saat Wi-Fi tersendat.** Setiap klik langsung disimpan, dicoba ulang otomatis, dan bila tetap gagal muncul tombol **Simpan lagi**. Tombol kirim menunggu sampai semua tersimpan.
 - **Muat di Chromebook.** Pada layar pendek soal dirapatkan dan tombol Lanjut menempel di bawah, jadi anak tidak perlu menggulir.
@@ -70,6 +71,7 @@ Anak mengerjakan **tes awal (pretest)** sebelum materi, mengikuti materi dan per
 
 | Fitur | Keterangan |
 |---|---|
+| Saklar Aiko 3D | Mematikan Aiko 3D di semua perangkat siswa dalam beberapa detik bila Chromebook tersendat. |
 | Atur tahap | Pretest, Belajar, Posttest, Selesai. Setiap perubahan dikonfirmasi dan menyebut siswa yang masih mengerjakan. Layar siswa ikut berubah dalam sekitar 8 detik. |
 | Peserta | Progres tiap siswa (misalnya *Mengerjakan 6/10*), pencarian, filter kelas, ubah nama atau kelas, hapus siswa. |
 | Analitik | Rata-rata tes awal dan akhir, persentase siswa yang naik, alur kegiatan, sebaran nilai 0 sampai 10, perbandingan kelas, dan soal yang paling perlu diulas. Setiap grafik punya tooltip dan tampilan tabel. |
@@ -164,7 +166,7 @@ PENDAMPING_PASSWORD=<kata sandi uji lokal>
 | `npm run build` | Build produksi |
 | `npm run typecheck` | Pemeriksaan TypeScript |
 | `npm run db:migrate` | Menerapkan `db/schema.sql` (idempoten, koneksi langsung) |
-| `npm run test:api` | 34 uji alur API terhadap `npm run dev`; hanya untuk kegiatan berawalan `uji`, datanya dihapus di akhir |
+| `npm run test:api` | 36 uji alur API terhadap `npm run dev`; hanya untuk kegiatan berawalan `uji`, datanya dihapus di akhir |
 | `node scripts/build-aiko.mjs` | Menyalin pose dan ikon Aiko dari paket aset ke `lib/aiko-art.ts` |
 
 ## Struktur proyek

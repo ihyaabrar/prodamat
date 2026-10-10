@@ -98,7 +98,7 @@ main { flex: 1; }
 .aiko-bubble::before { content: ""; position: absolute; left: -9px; bottom: 12px; width: 14px; height: 14px; background: #fff; border-left: 2px solid var(--blue-soft); border-bottom: 2px solid var(--blue-soft); transform: rotate(45deg); }
 
 /* Beranda */
-.hero { display: grid; grid-template-columns: 1.15fr .85fr; gap: 24px; align-items: center; margin-top: 28px; padding: 44px 56px; background: var(--blue); color: #fff; border-radius: 32px; overflow: hidden; }
+.hero { display: grid; grid-template-columns: 1.15fr .85fr; gap: 24px; align-items: center; margin-top: 28px; padding: 44px 56px; background: var(--blue); color: #fff; border-radius: 32px; }
 .hero :focus-visible { outline-color: #fff; }
 .hero-context { color: #e4eaff; font-size: 15px; font-weight: 800; }
 .hero h1 { font-size: clamp(44px, 5.6vw, 72px); letter-spacing: -1.6px; line-height: 1.04; margin: 14px 0 18px; color: #fff; }
@@ -106,10 +106,16 @@ main { flex: 1; }
 .hero-actions { margin-top: 30px; display: flex; gap: 24px; flex-wrap: wrap; align-items: center; }
 .hero-link { min-height: 44px; display: inline-flex; align-items: center; color: #fff; font-size: 17px; font-weight: 800; text-decoration: underline; text-underline-offset: 5px; }
 .hero-reassurance { margin-top: 18px; color: #e4eaff; font-size: 15px; font-weight: 700; }
-.hero-art { position: relative; display: flex; flex-direction: column; align-items: center; }
-.hero-art::before { content: ""; position: absolute; bottom: 4px; width: 320px; height: 320px; max-width: 100%; border-radius: 50%; background: #4669e3; }
+#main { overflow-x: clip; }
+/* Kotak biru sebagai layar: Aiko muncul dari tepi bawah (badan terpotong), tangan kanannya keluar melewati tepi kanan. */
+.hero-art { position: relative; align-self: stretch; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; margin-bottom: -44px; }
+.hero-art::before { content: ""; position: absolute; bottom: 0; right: -20px; width: 340px; height: 170px; border-radius: 170px 170px 0 0; background: #4669e3; }
 .hero-art .robot { position: relative; width: 290px; }
-.hero-bubble { position: relative; z-index: 1; align-self: flex-start; max-width: 290px; margin-bottom: -10px; padding: 14px 18px; background: #fff; color: var(--ink); border-radius: 20px 20px 20px 6px; font-size: 16px; line-height: 1.45; }
+.hero-art .aiko3d.is-bust { align-self: flex-end; width: 300px; height: 270px; margin: 12px -128px 0 0; clip-path: inset(-80% -80% 0 -80%); }
+.aiko3d.is-bust > .aiko3d-fallback { position: absolute; left: -30%; top: -2%; width: 165% !important; max-width: none; transform: rotate(-5deg); transform-origin: 50% 100%; }
+.aiko3d.is-bust .aiko3d-layer { inset: -24% -34% 0 -34%; }
+.aiko3d.is-bust .aiko3d-tap { inset: 4% 10% 0; border-radius: 40% 40% 0 0; }
+.hero-bubble { position: relative; z-index: 1; align-self: flex-start; max-width: 290px; margin-bottom: -10px; padding: 14px 18px; background: #fff; color: var(--ink); border-radius: 20px 20px 6px 20px; font-size: 16px; line-height: 1.45; }
 .hero-bubble strong { display: block; font-size: 18px; }
 .journey-section { padding-block: 56px 20px; }
 .journey-section h2 { font-size: 30px; }
@@ -423,8 +429,10 @@ th:last-child:has(.sr-only) { background: #f5f7fa; }
   .institution-copy > span { font-size: 10px; letter-spacing: 2px; }
   .institution-wordmark { width: 180px; }
   .hero { padding: 40px; }
+  .hero-art { margin-bottom: -40px; }
   .hero-art .robot { width: 250px; }
-  .hero-art::before { width: 270px; height: 270px; }
+  .hero-art .aiko3d.is-bust { width: 260px; height: 236px; }
+  .hero-art::before { width: 290px; height: 145px; right: -14px; }
   .how-section { grid-template-columns: 1fr; gap: 24px; }
   .journey-live { grid-template-columns: 1fr; }
   .journey-live .stop { flex-direction: row; align-items: flex-start; gap: 18px; }
@@ -444,10 +452,11 @@ th:last-child:has(.sr-only) { background: #f5f7fa; }
   .institution-copy > span { font-size: 9px; letter-spacing: 1.5px; }
   .institution-wordmark { width: 145px; }
   .hero { grid-template-columns: 1fr; padding: 32px 28px 0; gap: 8px; }
-  .hero-art { flex-direction: row; align-items: flex-end; justify-content: center; gap: 4px; }
-  .hero-art::before { width: 220px; height: 220px; bottom: -40px; left: auto; right: 10px; }
+  .hero-art { flex-direction: row; align-items: flex-end; justify-content: flex-end; gap: 4px; margin-bottom: 0; }
+  .hero-art::before { width: 240px; height: 120px; left: auto; right: 0; transform: none; }
   .hero-art .robot { width: 190px; }
-  .hero-bubble { align-self: center; margin: 0 -18px 40px 0; max-width: 240px; font-size: 15px; }
+  .hero-art .aiko3d.is-bust { flex: none; width: 210px; height: 190px; margin-right: -64px; }
+  .hero-bubble { align-self: center; margin: 0 52px 40px 0; max-width: 240px; font-size: 15px; }
   .journey { grid-template-columns: 1fr; gap: 22px; }
   .journey::before { display: none; }
   .journey .stop:not(:last-child)::after { content: ""; position: absolute; top: 62px; bottom: -22px; left: 28px; border-left: 4px dashed #bfcbf3; }
@@ -488,8 +497,9 @@ th:last-child:has(.sr-only) { background: #f5f7fa; }
   .hero-reassurance { font-size: 14px; margin-top: 12px; }
   .hero-art { margin-top: 8px; }
   .hero-art .robot { width: 112px; }
-  .hero-art::before { width: 150px; height: 150px; right: -20px; bottom: -40px; }
-  .hero-bubble { margin: 0 -4px 30px 0; max-width: none; flex: 1; font-size: 14px; padding: 12px 14px; }
+  .hero-art .aiko3d.is-bust { width: 140px; height: 128px; margin-right: -22px; }
+  .hero-art::before { width: 150px; height: 75px; right: -12px; }
+  .hero-bubble { margin: 0 12px 30px 0; max-width: none; flex: 1; font-size: 14px; padding: 12px 14px; }
   .hero-bubble strong { font-size: 16px; }
   .journey-section { padding-block: 36px 8px; }
   .journey-section h2 { font-size: 26px; }
@@ -734,3 +744,24 @@ th:last-child:has(.sr-only) { background: #f5f7fa; }
   .cert-actions .button { width: 100%; }
 }
 .cert-format { width: max-content; margin-top: 16px; }
+/* Aiko 3D: lapisan kanvas menumpuk di atas Aiko 2D; 2D memudar saat 3D siap. Lapisan sedikit lebih besar agar lengan terangkat dan konfeti tidak terpotong. */
+.aiko3d { position: relative; display: block; }
+.aiko3d > .aiko3d-fallback { width: 100% !important; transition: opacity .5s ease; }
+.aiko3d-layer { position: absolute; inset: -12% -16% -4%; pointer-events: none; opacity: 0; transition: opacity .5s ease; }
+.aiko3d.is-live .aiko3d-layer { opacity: 1; }
+.aiko3d.is-live > .aiko3d-fallback { opacity: 0; }
+.aiko3d-canvas { display: block; width: 100%; height: 100%; }
+.aiko3d-tap { position: absolute; inset: 6% 14% 4%; padding: 0; border: 0; border-radius: 40%; background: transparent; cursor: pointer; }
+.aiko3d-tap:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+.aiko3d-switch { display: flex; gap: 12px; align-items: flex-start; margin-top: 14px; padding: 12px 14px; background: #f5f7fa; border-radius: 14px; cursor: pointer; }
+.aiko3d-switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.aiko3d-switch strong { display: block; font-size: 15px; color: var(--ink); }
+.aiko3d-switch small { display: block; font-size: 13px; color: var(--muted); }
+.switch-track { position: relative; flex-shrink: 0; width: 46px; height: 26px; margin-top: 2px; border-radius: 13px; background: var(--edge); transition: background .15s; }
+.switch-track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform .15s; }
+.aiko3d-switch input:checked + .switch-track { background: var(--blue); }
+.aiko3d-switch input:checked + .switch-track::after { transform: translateX(20px); }
+.aiko3d-switch input:focus-visible + .switch-track { outline: 3px solid var(--blue); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .aiko3d-layer, .aiko3d > .aiko3d-fallback { transition: none; } }
+.aiko-says .aiko3d { width: 128px; }
+@media (max-width: 600px) { .aiko-says .aiko3d { width: 96px; } }

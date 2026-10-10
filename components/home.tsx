@@ -1,7 +1,23 @@
-import { ArrowRight, Check, ClipboardCheck, ClipboardList, MousePointerClick, PencilLine, Send } from "lucide-react";
-import { Aiko, AikoIcon } from "./robot";
+"use client";
 
-export function Home({ onStart, returning }: { onStart: () => void; returning: boolean }) {
+import { useState } from "react";
+import { ArrowRight, Check, ClipboardCheck, ClipboardList, MousePointerClick, PencilLine, Send } from "lucide-react";
+import type { AikoPose } from "@/lib/aiko-art";
+import { AikoIcon } from "./robot";
+import { Aiko3D } from "./aiko-3d";
+
+// Ketukan pada Aiko memutar gerakan ceria dan mengganti kalimat sapaan secara bergiliran.
+const TAPS: { pose: AikoPose; line: React.ReactNode }[] = [
+  { pose: "wave", line: <><strong>Hai, aku Aiko!</strong> Aku menemanimu belajar hari ini. Belum tahu jawabannya? Tidak apa-apa.</> },
+  { pose: "celebrate", line: <><strong>Hihi, geli!</strong> Yuk, klik Mulai petualangan.</> },
+  { pose: "thinking", line: <><strong>Tahukah kamu?</strong> AI ada di peta, kamera, dan rekomendasi video.</> },
+  { pose: "reading", line: <><strong>Ayo belajar!</strong> Baca soalnya pelan-pelan, ya.</> },
+  { pose: "reassure", line: <><strong>Kamu pasti bisa!</strong> Kakak pendamping siap membantu.</> },
+];
+
+export function Home({ onStart, returning, aiko3d }: { onStart: () => void; returning: boolean; aiko3d: boolean }) {
+  const [tap, setTap] = useState(0);
+  const current = TAPS[tap % TAPS.length];
   return <>
     <section className="hero content-width" aria-labelledby="hero-title">
       <div className="hero-copy">
@@ -15,8 +31,8 @@ export function Home({ onStart, returning }: { onStart: () => void; returning: b
         <p className="hero-reassurance">10 soal setiap tes · Tidak ada batas waktu</p>
       </div>
       <figure className="hero-art">
-        <figcaption className="hero-bubble"><strong>Hai, aku Aiko!</strong> Aku menemanimu belajar hari ini. Belum tahu jawabannya? Tidak apa-apa.</figcaption>
-        <Aiko pose="wave"/>
+        <figcaption className="hero-bubble" aria-live="polite">{current.line}</figcaption>
+        <Aiko3D pose={current.pose} replay={tap} enabled={aiko3d} onTap={() => setTap(tap + 1)} framing="bust" tapLabel="Ketuk Aiko untuk mendengar kalimat lain"/>
       </figure>
     </section>
 

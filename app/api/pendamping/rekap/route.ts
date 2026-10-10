@@ -1,6 +1,6 @@
 import type { Rekap } from "@/lib/model";
 import { questions, sampleParticipants } from "@/lib/server/content";
-import { getPhase, listParticipants } from "@/lib/server/data";
+import { getAiko3d, getPhase, listParticipants } from "@/lib/server/data";
 import { handle, ok } from "@/lib/server/http";
 import { requirePendamping } from "@/lib/server/session";
 
@@ -8,6 +8,6 @@ import { requirePendamping } from "@/lib/server/session";
 export const GET = handle(async request => {
   await requirePendamping(request);
   const sample = request.nextUrl.searchParams.get("contoh") === "1";
-  const [phase, participants] = await Promise.all([getPhase(), sample ? sampleParticipants() : listParticipants()]);
-  return ok<Rekap>({ phase, sample, participants, questions });
+  const [phase, aiko3d, participants] = await Promise.all([getPhase(), getAiko3d(), sample ? sampleParticipants() : listParticipants()]);
+  return ok<Rekap>({ phase, aiko3d, sample, participants, questions });
 });

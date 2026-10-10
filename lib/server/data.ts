@@ -15,6 +15,17 @@ export async function getPhase(): Promise<Phase> {
   return again.rows[0].phase;
 }
 
+// Baris kegiatan dibuat oleh getPhase; bila belum ada, saklar dianggap aktif (nilai bawaan kolom).
+export async function getAiko3d(): Promise<boolean> {
+  const { rows } = await db.query<{ aiko3d: boolean }>("select aiko3d from activity where id = $1", [activityId()]);
+  return rows[0]?.aiko3d ?? true;
+}
+
+export async function setAiko3d(enabled: boolean) {
+  await getPhase();
+  await db.query("update activity set aiko3d = $2, updated_at = now() where id = $1", [activityId(), enabled]);
+}
+
 export async function setPhase(phase: Phase) {
   await getPhase();
   await db.query("update activity set phase = $2, updated_at = now() where id = $1", [activityId(), phase]);
@@ -46,8 +57,8 @@ export async function getParticipant(id: string): Promise<Participant | null> {
 }
 
 export async function getMe(participantId: string | null): Promise<Me> {
-  const [phase, participant] = await Promise.all([getPhase(), participantId ? getParticipant(participantId) : null]);
-  return { phase, participant };
+  const [phase, participant, aiko3d] = await Promise.all([getPhase(), participantId ? getParticipant(participantId) : null, getAiko3d()]);
+  return { phase, participant, aiko3d };
 }
 
 export async function listParticipants(): Promise<RekapParticipant[]> {

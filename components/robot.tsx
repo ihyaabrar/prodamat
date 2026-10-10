@@ -9,9 +9,9 @@ export function AikoIcon({ name, className = "" }: { name: AikoIconName; classNa
   return <span className={`aiko-icon${className ? ` ${className}` : ""}`} dangerouslySetInnerHTML={{ __html: aikoIcons[name] }}/>;
 }
 
-export function AikoSays({ children, pose = "idle", live = false }: { children: React.ReactNode; pose?: AikoPose; live?: boolean }) {
+export function AikoSays({ children, pose = "idle", live = false, figure }: { children: React.ReactNode; pose?: AikoPose; live?: boolean; figure?: React.ReactNode }) {
   return <div className="aiko-says">
-    <Aiko pose={pose}/>
+    {figure ?? <Aiko pose={pose}/>}
     <p className="aiko-bubble" role={live ? "status" : undefined}><span className="sr-only">Aiko: </span>{children}</p>
   </div>;
 }

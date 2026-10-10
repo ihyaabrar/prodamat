@@ -150,6 +150,14 @@ await step("reset mengosongkan siswa dan kembali ke pretest", async () => {
   assert.equal(data.participants.length, 0); assert.equal(data.phase, "pretest");
   assert.equal((await siswaUlang("/api/peserta/saya")).data.participant, null);
 });
+await step("siswa tidak bisa mematikan Aiko 3D (401)", async () => assert.equal((await siswaUlang("/api/pendamping/aiko3d", { method: "PATCH", body: { enabled: false } })).status, 401));
+await step("saklar Aiko 3D dari pendamping sampai ke siswa", async () => {
+  assert.equal((await pendamping("/api/pendamping/aiko3d", { method: "PATCH", body: { enabled: false } })).data.aiko3d, false);
+  assert.equal((await siswaUlang("/api/peserta/saya")).data.aiko3d, false);
+  assert.equal((await pendamping("/api/pendamping/rekap")).data.aiko3d, false);
+  await pendamping("/api/pendamping/aiko3d", { method: "PATCH", body: { enabled: true } });
+  assert.equal((await siswaUlang("/api/peserta/saya")).data.aiko3d, true);
+});
 await step("pendamping keluar", async () => {
   await pendamping("/api/pendamping/keluar", { method: "POST" });
   assert.equal((await pendamping("/api/pendamping/rekap")).status, 401);

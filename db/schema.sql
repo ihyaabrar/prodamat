@@ -6,6 +6,9 @@ create table if not exists activity (
   updated_at timestamptz not null default now()
 );
 
+-- Saklar Aiko 3D di perangkat siswa; pendamping bisa mematikannya bila Chromebook tersendat.
+alter table activity add column if not exists aiko3d boolean not null default true;
+
 create table if not exists participant (
   id uuid primary key default gen_random_uuid(),
   activity_id text not null references activity (id) on delete cascade,

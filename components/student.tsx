@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ArrowLeft, ArrowRight, BadgeCheck, BookOpen, Check, CheckCircle2, Clock, Lightbulb, LockKeyhole, RotateCcw, Send, Trophy, ClipboardCheck, ClipboardList } from "lucide-react";
 import { canStart, validName, type ClassName, type Participant, type Phase, type Results as ResultData, type TestKind } from "@/lib/model";
 import { Aiko, AikoIcon, AikoSays } from "./robot";
+import { Aiko3D } from "./aiko-3d";
 import type { AikoPose } from "@/lib/aiko-art";
 import { Dialog } from "./dialog";
 
@@ -41,7 +42,7 @@ export function Join({ onJoin, onBack }: { onJoin: (name: string, className: Cla
 type StopState = "done" | "now" | "wait";
 type Stop = { key: string; title: string; step: string; icon: React.ReactNode; art?: boolean; state: StopState; detail: string; action?: React.ReactNode };
 
-export function StudentHub({ participant, phase, onStart, onChange, onResults }: { participant: Participant; phase: Phase; onStart: (kind: TestKind) => void; onChange: () => void; onResults: () => void }) {
+export function StudentHub({ participant, phase, aiko3d, onStart, onChange, onResults }: { participant: Participant; phase: Phase; aiko3d: boolean; onStart: (kind: TestKind) => void; onChange: () => void; onResults: () => void }) {
   const [confirmChange, setConfirmChange] = useState(false);
   const preDone = !!participant.pretest?.submittedAt;
   const postDone = !!participant.posttest?.submittedAt;
@@ -83,7 +84,7 @@ export function StudentHub({ participant, phase, onStart, onChange, onResults }:
       <div><p className="kicker">Kelas {classLabel(participant.className)} · Petualangan belajarmu</p><h1>Halo, {participant.name}!</h1></div>
       <button className="text-button" onClick={() => setConfirmChange(true)}><RotateCcw size={17}/> Bukan kamu? Ganti peserta</button>
     </div>
-    <AikoSays live pose={pose}>{message}</AikoSays>
+    <AikoSays live pose={pose} figure={<Aiko3D pose={pose} enabled={aiko3d}/>}>{message}</AikoSays>
     <ol className="journey journey-live" aria-label="Langkah kegiatan">
       {stops.map(stop => <li key={stop.key} className={`stop ${stop.state}`} aria-current={stop.state === "now" ? "step" : undefined}>
         <span className={`stop-token${stop.art && stop.state !== "done" && stop.state !== "wait" ? " art" : ""}`} aria-hidden="true">{stop.state === "done" ? <Check size={26} strokeWidth={3}/> : stop.state === "wait" ? <LockKeyhole size={22} strokeWidth={2.3}/> : stop.icon}</span>
@@ -119,10 +120,10 @@ export function Instructions({ kind, onStart, onBack }: { kind: TestKind; onStar
   </section>;
 }
 
-export function Completion({ kind, participant, onContinue }: { kind: TestKind; participant: Participant; onContinue: () => void }) {
+export function Completion({ kind, participant, aiko3d, onContinue }: { kind: TestKind; participant: Participant; aiko3d: boolean; onContinue: () => void }) {
   return <section className="completion-layout content-width">
     <div className="completion-art">
-      <Aiko pose="celebrate"/>
+      <Aiko3D pose="celebrate" enabled={aiko3d}/>
       <span className="complete-tick"><Check size={30} strokeWidth={3}/></span>
     </div>
     <p className="kicker">{kind === "pretest" ? "Pretest selesai" : "Posttest selesai"}</p>
@@ -142,7 +143,7 @@ function resultMessage(pre: number, post: number) {
   return "Kamu sudah berusaha sampai selesai. Yuk, baca pembahasannya supaya makin paham.";
 }
 
-export function Results({ participant, results, onBack }: { participant: Participant; results: ResultData; onBack: () => void }) {
+export function Results({ participant, results, aiko3d, onBack }: { participant: Participant; results: ResultData; aiko3d: boolean; onBack: () => void }) {
   const [kind, setKind] = useState<TestKind>("posttest");
   const pre = results.scores.pretest;
   const post = results.scores.posttest;
@@ -168,6 +169,7 @@ export function Results({ participant, results, onBack }: { participant: Partici
       </div>
     </div>
     {results.review ? <>
+      <AikoSays pose={post >= 8 || post > pre ? "celebrate" : "reassure"} figure={<Aiko3D pose={post >= 8 || post > pre ? "celebrate" : "reassure"} enabled={aiko3d}/>}>{post >= 8 || post > pre ? "Hebat! Yuk, baca pembahasannya untuk mengingat hal yang sudah kamu pahami." : "Tidak apa-apa! Baca pembahasannya pelan-pelan, nanti makin paham."}</AikoSays>
       <div className="review-heading"><div><h2>Yuk, pahami bersama</h2><p>Klik soal untuk membaca penjelasannya.</p></div><div className="segmented-control" role="group" aria-label="Pilih pembahasan">{(["pretest", "posttest"] as TestKind[]).map(test => <button key={test} aria-pressed={kind === test} className={kind === test ? "active" : ""} onClick={() => setKind(test)}>{test === "pretest" ? "Tes awal" : "Tes akhir"}</button>)}</div></div>
       <div className="explanation-list">{review!.questions.map((question, index) => {
         const answer = review!.answers[index];
@@ -182,6 +184,6 @@ export function Results({ participant, results, onBack }: { participant: Partici
           </div>
         </details>;
       })}</div>
-    </> : <AikoSays live pose="reading">Pembahasan soal akan muncul di sini setelah kakak pendamping menutup tes untuk semua teman. Tunggu sebentar, ya.</AikoSays>}
+    </> : <AikoSays live pose="reading" figure={<Aiko3D pose="reading" enabled={aiko3d}/>}>Pembahasan soal akan muncul di sini setelah kakak pendamping menutup tes untuk semua teman. Tunggu sebentar, ya.</AikoSays>}
   </section>;
 }

@@ -60,6 +60,10 @@ export function AdminApp() {
     catch (failure) { if (errorStatus(failure) === 401) setStatus("login"); else setError(errorMessage(failure)); }
     finally { setPhaseSaving(false); }
   }
+  async function toggleAiko3d(enabled: boolean) {
+    try { await api("/api/pendamping/aiko3d", { method: "PATCH", body: { enabled } }); await load(sample); }
+    catch (failure) { if (errorStatus(failure) === 401) setStatus("login"); else setError(errorMessage(failure)); }
+  }
   async function logout() {
     try { await api("/api/pendamping/keluar", { method: "POST" }); } catch {}
     setRekap(null); setSample(false); setStatus("login");
@@ -67,7 +71,7 @@ export function AdminApp() {
 
   if (status === "login") return <AdminLogin onDone={() => { setStatus("loading"); void load(sample); }}/>;
   if (status === "loading" || !rekap) return status === "error" ? <StateMessage title="Data kegiatan belum bisa dimuat." detail={error} onRetry={() => load(sample)}/> : <StateMessage title="Memuat data kegiatan..."/>;
-  return <Admin rekap={rekap} sample={sample} onSample={() => setSample(!sample)} onPhase={changePhase} phaseSaving={phaseSaving} onLogout={logout} onRefresh={() => load(sample)} error={error}/>;
+  return <Admin rekap={rekap} sample={sample} onSample={() => setSample(!sample)} onPhase={changePhase} phaseSaving={phaseSaving} onLogout={logout} onRefresh={() => load(sample)} onAiko3d={toggleAiko3d} error={error}/>;
 }
 
 function AdminLogin({ onDone }: { onDone: () => void }) {
@@ -113,7 +117,7 @@ function AdminLogin({ onDone }: { onDone: () => void }) {
   </section>;
 }
 
-function Admin({ rekap, sample, onSample, onPhase, phaseSaving, onLogout, onRefresh, error }: { rekap: Rekap; sample: boolean; onSample: () => void; onPhase: (phase: Phase) => Promise<void>; phaseSaving: boolean; onLogout: () => void; onRefresh: () => Promise<void>; error: string }) {
+function Admin({ rekap, sample, onSample, onPhase, phaseSaving, onLogout, onRefresh, onAiko3d, error }: { rekap: Rekap; sample: boolean; onSample: () => void; onPhase: (phase: Phase) => Promise<void>; phaseSaving: boolean; onLogout: () => void; onRefresh: () => Promise<void>; onAiko3d: (enabled: boolean) => Promise<void>; error: string }) {
   const [pendingPhase, setPendingPhase] = useState<Phase | null>(null);
   const [editing, setEditing] = useState<RekapParticipant | null>(null);
   const [resetting, setResetting] = useState(false);
@@ -161,7 +165,8 @@ function Admin({ rekap, sample, onSample, onPhase, phaseSaving, onLogout, onRefr
     <p className="local-notice">Data tersimpan di server kegiatan dan diperbarui otomatis setiap 10 detik.</p>
     {error ? <div className="sample-notice" role="alert"><strong>Pembaruan gagal.</strong> {error} Data di bawah adalah data terakhir yang berhasil dimuat.</div> : null}
     {sample ? <div className="sample-notice" role="status"><strong>Data contoh.</strong> Nama dan jawaban di bawah adalah simulasi. Pengaturan sesi tetap mengatur kegiatan yang sebenarnya.</div> : null}
-    <div className="panel session-panel"><div className="panel-title"><div><h2>Atur sesi kegiatan</h2><p>Pilih tahap yang sedang berlangsung.</p></div><span className="status-pill blue" role="status">{phaseSaving ? "Menyimpan..." : phaseLabels[phase]}</span></div><div className="phase-switch">{phaseOptions.map((option, index) => <button key={option.value} className={phase === option.value ? "active" : ""} aria-pressed={phase === option.value} disabled={phaseSaving} onClick={() => { if (option.value !== phase) setPendingPhase(option.value); }}><span className="phase-number">{phase === option.value ? <Check size={18}/> : index + 1}</span><span><strong>{option.label}</strong><small>{option.description}</small></span></button>)}</div><p className="field-hint">Posttest bisa dimulai setelah pretest selesai. Perubahan tahap sampai ke perangkat siswa dalam beberapa detik.</p></div>
+    <div className="panel session-panel"><div className="panel-title"><div><h2>Atur sesi kegiatan</h2><p>Pilih tahap yang sedang berlangsung.</p></div><span className="status-pill blue" role="status">{phaseSaving ? "Menyimpan..." : phaseLabels[phase]}</span></div><div className="phase-switch">{phaseOptions.map((option, index) => <button key={option.value} className={phase === option.value ? "active" : ""} aria-pressed={phase === option.value} disabled={phaseSaving} onClick={() => { if (option.value !== phase) setPendingPhase(option.value); }}><span className="phase-number">{phase === option.value ? <Check size={18}/> : index + 1}</span><span><strong>{option.label}</strong><small>{option.description}</small></span></button>)}</div><p className="field-hint">Posttest bisa dimulai setelah pretest selesai. Perubahan tahap sampai ke perangkat siswa dalam beberapa detik.</p>
+      <label className="aiko3d-switch"><input type="checkbox" role="switch" checked={rekap.aiko3d} onChange={event => void onAiko3d(event.target.checked)}/><span className="switch-track" aria-hidden="true"/><span><strong>Aiko 3D di perangkat siswa {rekap.aiko3d ? "aktif" : "mati"}</strong><small>Matikan bila Chromebook terasa lambat. Siswa kembali melihat Aiko 2D dalam beberapa detik. Layar soal tidak memakai Aiko 3D.</small></span></label></div>
     <dl className="admin-stats"><div><dt>Peserta terdaftar</dt><dd>{data.length}<span>siswa</span></dd><p>{data.filter(item => item.className === "V").length} kelas V · {data.filter(item => item.className === "VI").length} kelas VI</p></div><div><dt>Pretest selesai</dt><dd>{preDone.length}<span>dari {data.length}</span></dd><p>{data.length - preDone.length} belum selesai</p></div><div><dt>Kedua tes selesai</dt><dd>{paired.length}<span>dari {data.length}</span></dd><p>Siap ditampilkan dalam peringkat</p></div></dl>
     <div className="panel roster-panel">
       <div className="roster-top"><div className="admin-tabs" aria-label="Pilih rekap"><button className={tab === "participants" ? "active" : ""} aria-pressed={tab === "participants"} onClick={() => setTab("participants")}>Peserta <span>{data.length}</span></button><button className={tab === "analytics" ? "active" : ""} aria-pressed={tab === "analytics"} onClick={() => setTab("analytics")}>Analitik</button><button className={tab === "ranking" ? "active" : ""} aria-pressed={tab === "ranking"} onClick={() => setTab("ranking")}>Peringkat</button><button className={tab === "questions" ? "active" : ""} aria-pressed={tab === "questions"} onClick={() => setTab("questions")}>Analisis soal</button><button className={tab === "certificates" ? "active" : ""} aria-pressed={tab === "certificates"} onClick={() => setTab("certificates")}>Sertifikat</button></div><div className="export-actions"><button className="button secondary export-button" disabled={exporting} onClick={exportXlsx}><ArrowDownToLine size={17}/>{exporting ? "Menyiapkan Excel..." : "Unduh rekap Excel"}</button><button className="text-button export-csv" onClick={exportCsv}>CSV mentah</button></div></div>

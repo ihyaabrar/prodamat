@@ -174,7 +174,7 @@ function StudentApp({ mainRef, homeSignal }: { mainRef: React.RefObject<HTMLElem
   function answer(index: number, value: number) {
     if (!participant || !canStart(participant, phase, kind)) return;
     const attempt = participant[kind] ?? { answers: blankAnswers(), submittedAt: null };
-    setMe({ phase, participant: { ...participant, [kind]: { ...attempt, answers: attempt.answers.map((old, number) => number === index ? value : old) } } });
+    setMe({ phase, aiko3d: me?.aiko3d ?? true, participant: { ...participant, [kind]: { ...attempt, answers: attempt.answers.map((old, number) => number === index ? value : old) } } });
     queue.current.set(`${kind}:${index}`, { kind, index, answer: value });
     void flush();
   }
@@ -191,14 +191,14 @@ function StudentApp({ mainRef, homeSignal }: { mainRef: React.RefObject<HTMLElem
   const goStart = () => setScreen(participant ? "hub" : "join");
   let content: React.ReactNode;
   if (!me) content = loadError ? <StateMessage title="Halaman belum bisa dimuat." detail={loadError} onRetry={load}/> : <StateMessage title="Menyiapkan kegiatan belajarmu..."/>;
-  else if (screen === "home") content = <Home onStart={goStart} returning={!!participant}/>;
+  else if (screen === "home") content = <Home onStart={goStart} returning={!!participant} aiko3d={me.aiko3d}/>;
   else if (screen === "join" || !participant) content = <Join onJoin={join} onBack={() => setScreen("home")}/>;
-  else if (screen === "hub") content = <StudentHub participant={participant} phase={phase} onStart={start} onChange={changeParticipant} onResults={() => setScreen("results")}/>;
+  else if (screen === "hub") content = <StudentHub participant={participant} phase={phase} aiko3d={me.aiko3d} onStart={start} onChange={changeParticipant} onResults={() => setScreen("results")}/>;
   else if (screen === "intro") content = <Instructions kind={kind} onStart={begin} onBack={() => setScreen("hub")}/>;
   else if (screen === "quiz") content = questions ? <Quiz participant={participant} kind={kind} questions={questions[kind]} save={save} submitting={submitting} onRetry={() => void flush()} onAnswer={answer} onSubmit={submit} onExit={() => setScreen("hub")}/> : questionsError ? <StateMessage title="Soal belum bisa dimuat." detail={questionsError} onRetry={loadQuestions}/> : <StateMessage title="Menyiapkan soal..."/>;
-  else if (screen === "complete") content = <Completion kind={kind} participant={participant} onContinue={() => setScreen(kind === "pretest" ? "hub" : "results")}/>;
-  else if (participant.posttest?.submittedAt) content = results ? <Results participant={participant} results={results} onBack={() => setScreen("hub")}/> : resultsError ? <StateMessage title="Hasil belum bisa dimuat." detail={resultsError} onRetry={loadResults}/> : <StateMessage title="Menyiapkan hasil belajarmu..."/>;
-  else content = <StudentHub participant={participant} phase={phase} onStart={start} onChange={changeParticipant} onResults={() => setScreen("hub")}/>;
+  else if (screen === "complete") content = <Completion kind={kind} participant={participant} aiko3d={me.aiko3d} onContinue={() => setScreen(kind === "pretest" ? "hub" : "results")}/>;
+  else if (participant.posttest?.submittedAt) content = results ? <Results participant={participant} results={results} aiko3d={me.aiko3d} onBack={() => setScreen("hub")}/> : resultsError ? <StateMessage title="Hasil belum bisa dimuat." detail={resultsError} onRetry={loadResults}/> : <StateMessage title="Menyiapkan hasil belajarmu..."/>;
+  else content = <StudentHub participant={participant} phase={phase} aiko3d={me.aiko3d} onStart={start} onChange={changeParticipant} onResults={() => setScreen("hub")}/>;
   return <>
     {notice ? <div className="notice-bar" role="alert"><p>{notice}</p><button className="icon-button" aria-label="Tutup pesan" onClick={() => setNotice("")}><X size={18}/></button></div> : null}
     {loadError && me ? <div className="notice-bar" role="status"><p>Koneksi terputus. Tahap kegiatan akan diperbarui saat tersambung lagi.</p></div> : null}
