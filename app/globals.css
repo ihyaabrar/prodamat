@@ -137,6 +137,7 @@ main { flex: 1; }
 .how-demo .answer-option { pointer-events: none; cursor: default; min-height: 60px; font-size: 17px; }
 .how-demo-label, .how-demo-note { font-size: 14px; font-weight: 800; color: var(--muted); }
 .site-footer { display: flex; gap: 16px; justify-content: space-between; padding-block: 24px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+.footer-link { color: var(--blue-dark); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 .storage-warning { background: #fff0df; color: #7c3618; padding: 14px 24px; font-size: 16px; font-weight: 700; }
 .loading-screen { display: grid; place-items: center; min-height: 400px; padding: 24px; text-align: center; }
 .loading-screen .button { margin-top: 18px; }
