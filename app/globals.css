@@ -612,3 +612,29 @@ th:last-child:has(.sr-only) { background: #f5f7fa; }
   .quiz-navigation .button.big { min-height: 52px; }
   .quiz-hint { margin-top: 4px; }
 }
+/* Login pendamping: form di kiri, identitas Kelompok 2 dan pembimbing di kanan. */
+.login-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .9fr); gap: 32px; align-items: start; max-width: 1040px; }
+.login-checklist { margin-top: 24px; }
+.login-checklist h2 { font-size: 19px; }
+.login-checklist ol { margin: 10px 0 0; padding-left: 22px; color: var(--muted); font-size: 15px; }
+.login-checklist li { padding-block: 5px; }
+.login-checklist li::marker { color: var(--blue-dark); font-weight: 900; }
+.login-checklist strong { color: var(--ink); }
+.team-card { padding: 26px 28px; border-top: 6px solid var(--blue); }
+.team-card h2 { margin-top: 4px; font-size: 28px; }
+.team-program { margin-top: 8px; color: var(--ink); font-size: 16px; font-weight: 700; line-height: 1.45; }
+.team-list { margin: 20px 0 0; }
+.team-list > div { padding-block: 14px; border-top: 1px solid var(--line); }
+.team-list dt { font-size: 13px; font-weight: 800; color: var(--muted); }
+.team-list dd { margin: 6px 0 0; }
+.team-list ol { margin: 0; padding-left: 20px; }
+.team-list li + li { margin-top: 8px; }
+.team-name { display: block; color: var(--ink); font-size: 16px; font-weight: 800; line-height: 1.35; overflow-wrap: anywhere; }
+.team-meta { display: block; color: var(--muted); font-size: 14px; }
+.team-foot { margin-top: 6px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 13px; }
+@media (max-width: 860px) {
+  .login-layout { grid-template-columns: 1fr; max-width: 640px; gap: 24px; }
+}
+@media (max-width: 600px) {
+  .team-card { padding: 22px 18px; }
+}

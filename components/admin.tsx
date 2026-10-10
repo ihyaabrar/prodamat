@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { AlertTriangle, ArrowDownToLine, Check, KeyRound, LogOut, Pencil, RotateCcw, Search, Trash2, Trophy } from "lucide-react";
 import { csvCell, isClassName, phaseLabels, ranking, RESET_PHRASE, validName, type ClassName, type Phase, type Rekap, type RekapParticipant, type TestKind } from "@/lib/model";
 import { Dialog } from "./dialog";
+import { team } from "@/lib/team";
 import { api, errorMessage, errorStatus } from "@/lib/api";
 import { StateMessage } from "./state-message";
 
@@ -70,21 +71,42 @@ function AdminLogin({ onDone }: { onDone: () => void }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [sending, setSending] = useState(false);
-  return <section className="student-layout join-layout content-width">
-    <p className="kicker">Ruang pendamping</p>
-    <h1 className="join-title">Masuk sebagai pendamping</h1>
-    <form className="panel join-panel login-panel" onSubmit={async event => {
-      event.preventDefault(); if (sending || !password) return;
-      setSending(true); setError("");
-      try { await api("/api/pendamping/masuk", { method: "POST", body: { password } }); setPassword(""); onDone(); }
-      catch (failure) { setError(errorMessage(failure)); }
-      finally { setSending(false); }
-    }}>
-      <label className="field-label" htmlFor="pendamping-password"><KeyRound size={20} aria-hidden="true"/>Kata sandi pendamping</label>
-      <input id="pendamping-password" className="name-input" type="password" autoComplete="current-password" value={password} onChange={event => { setPassword(event.target.value); setError(""); }} aria-invalid={!!error} aria-describedby={error ? "login-error" : undefined}/>
-      {error ? <p id="login-error" className="field-error" role="alert">{error}</p> : <p className="field-hint">Halaman ini hanya untuk kakak pendamping. Siswa masuk dari Beranda.</p>}
-      <button className="button primary full-width big" type="submit" disabled={!password || sending}>{sending ? "Memeriksa..." : "Masuk"}</button>
-    </form>
+  return <section className="student-layout login-layout content-width">
+    <div className="login-main">
+      <p className="kicker">Ruang pendamping</p>
+      <h1 className="join-title">Masuk sebagai pendamping</h1>
+      <form className="panel join-panel login-panel" onSubmit={async event => {
+        event.preventDefault(); if (sending || !password) return;
+        setSending(true); setError("");
+        try { await api("/api/pendamping/masuk", { method: "POST", body: { password } }); setPassword(""); onDone(); }
+        catch (failure) { setError(errorMessage(failure)); }
+        finally { setSending(false); }
+      }}>
+        <label className="field-label" htmlFor="pendamping-password"><KeyRound size={20} aria-hidden="true"/>Kata sandi pendamping</label>
+        <input id="pendamping-password" className="name-input" type="password" autoComplete="current-password" value={password} onChange={event => { setPassword(event.target.value); setError(""); }} aria-invalid={!!error} aria-describedby={error ? "login-error" : undefined}/>
+        {error ? <p id="login-error" className="field-error" role="alert">{error}</p> : <p className="field-hint">Halaman ini hanya untuk kakak pendamping. Siswa masuk dari Beranda.</p>}
+        <button className="button primary full-width big" type="submit" disabled={!password || sending}>{sending ? "Memeriksa..." : "Masuk"}</button>
+      </form>
+      <div className="login-checklist">
+        <h2>Sebelum anak datang</h2>
+        <ol>
+          <li><strong>Semua pendamping masuk dulu.</strong> Sesi berlaku 12 jam, jadi tidak perlu masuk lagi saat kegiatan.</li>
+          <li><strong>Satu orang saja yang menekan tombol tahap.</strong> Pendamping lain cukup memantau.</li>
+          <li><strong>Unduh rekap CSV</strong> setiap kali pretest atau posttest ditutup.</li>
+        </ol>
+      </div>
+    </div>
+    <aside className="panel team-card" aria-labelledby="team-title">
+      <p className="kicker">PRODAMAT 2026</p>
+      <h2 id="team-title">{team.group}</h2>
+      <p className="team-program">{team.program}</p>
+      <dl className="team-list">
+        <div><dt>Ketua kelompok</dt><dd><span className="team-name">{team.leader.name}</span><span className="team-meta">{team.leader.nim} · {team.study}</span></dd></div>
+        <div><dt>Anggota</dt><dd><ol>{team.members.map(member => <li key={member.nim}><span className="team-name">{member.name}</span><span className="team-meta">{member.nim} · {team.study}</span></li>)}</ol></dd></div>
+        <div><dt>Dosen pembimbing</dt><dd><ol>{team.advisors.map(advisor => <li key={advisor}><span className="team-name">{advisor}</span></li>)}</ol></dd></div>
+      </dl>
+      <p className="team-foot">Fakultas Teknologi Industri · Universitas Ahmad Dahlan</p>
+    </aside>
   </section>;
 }
 
