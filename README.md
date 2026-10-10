@@ -42,7 +42,7 @@ Anak mengerjakan **tes awal (pretest)** sebelum materi, mengikuti materi dan per
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/beranda.jpg" alt="Beranda dengan Aiko melambai"><br><sub><b>Beranda.</b> Satu tombol mulai, Aiko menyapa, jalur tiga langkah.</sub></td>
+    <td width="50%"><img src="docs/screenshots/beranda.jpg" alt="Beranda dengan Aiko 3D muncul dari kotak biru"><br><sub><b>Beranda.</b> Kotak biru jadi layar: Aiko 3D menyapa dan tangannya keluar dari bingkai. Satu tombol mulai.</sub></td>
     <td width="50%"><img src="docs/screenshots/soal.jpg" alt="Layar soal"><br><sub><b>Soal.</b> Satu soal per layar, kartu jawaban besar, tersimpan otomatis.</sub></td>
   </tr>
   <tr>
@@ -61,10 +61,12 @@ Anak mengerjakan **tes awal (pretest)** sebelum materi, mengikuti materi dan per
 
 - **Masuk tanpa kata sandi.** Cukup nama dan kelas; nama dan kelas yang sama di Chromebook mana pun melanjutkan pekerjaan yang sama.
 - **Aiko sebagai pemandu.** Satu gelembung, satu instruksi per layar. Pose berganti sesuai situasi: melambai, membaca, berpikir, merayakan, menenangkan. Aiko tidak tampil di layar soal agar anak fokus.
-- **Aiko 3D sebagai pemanis.** Di beranda, halaman petualangan, layar selesai, dan hasil, Aiko 2D berganti menjadi Aiko 3D (three.js) yang bergerak, bisa diketuk, dan menoleh mengikuti kursor. Otomatis tetap 2D bila perangkat lambat, tanpa WebGL, atau memakai kurangi gerak; pendamping bisa mematikannya dari dashboard. Konsep: `output/ui-concept/konsep-aiko-3d.md`.
+- **Aiko 3D sebagai pemanis.** Di beranda, halaman petualangan, layar selesai, dan hasil, Aiko 2D berganti menjadi Aiko 3D (three.js) yang bergerak. Di beranda, kotak biru menjadi "layar": Aiko tampil dari kepala sampai dada, sedikit miring, tangannya keluar dari bingkai, bisa diketuk untuk ganti gerakan dan kalimat, dan menoleh mengikuti kursor. Konsep: `output/ui-concept/konsep-aiko-3d.md`.
+- **Ringan untuk Chromebook.** three.js dimuat belakangan saat browser senggang dan tidak dimuat di layar soal. Render 30 fps saat bergerak dan 15 fps saat diam, tanpa shadow map. Bila tersendat, resolusi diturunkan dulu; bila tetap di bawah 22 fps, Aiko kembali 2D. Juga tetap 2D bila tanpa WebGL, kurangi gerak, hemat data, atau GPU melepas konteks. Pendamping bisa mematikan Aiko 3D untuk semua perangkat dari dashboard.
 - **Jalur petualangan.** Langkah yang sedang dibuka berwarna biru dengan tombol, langkah selesai hijau, langkah terkunci menyebut alasannya.
 - **Jawaban aman saat internet terputus.** Setiap klik langsung disimpan ke server. Bila internet putus, jawaban disimpan di perangkat, anak tetap bisa lanjut mengerjakan, dan semuanya dikirim otomatis begitu tersambung lagi, termasuk setelah halaman dimuat ulang atau Chromebook dinyalakan ulang. Tombol kirim menunggu sampai semua terkirim.
-- **Muat di Chromebook.** Pada layar pendek soal dirapatkan dan tombol Lanjut menempel di bawah, jadi anak tidak perlu menggulir.
+- **Muat di Chromebook tanpa menggulir.** Diuji pada ruang browser Chromebook 1366x630 (layar 1366x768 dikurangi bilah Chrome dan rak). Tombol utama di beranda, form nama, halaman petualangan, latihan, soal, dan layar selesai terlihat tanpa menggulir; form nama dan latihan memakai dua kolom, tombol Lanjut di layar soal menempel di bawah. Juga diperiksa di ponsel 360 px dan tablet 768 px: tanpa geser samping, tanpa elemen terpotong.
+- **Pesan galat yang ramah.** Halaman yang tidak ada dan galat tak terduga ditampilkan dalam bahasa Indonesia bersama Aiko dan tombol kembali atau coba lagi, bukan layar bawaan berbahasa Inggris.
 - **Hasil yang ramah.** Pesan ditentukan dari nilai tes akhir; nilai yang turun tidak ditampilkan sebagai angka minus. Pembahasan baru dibuka saat pendamping menutup sesi agar kunci tidak tersebar ke teman yang masih mengerjakan.
 
 ### Untuk pendamping
@@ -111,6 +113,7 @@ sequenceDiagram
   Siswa->>Server: Nama + kelas
   loop Setiap klik jawaban
     Siswa->>Server: Simpan jawaban (antre, coba ulang otomatis)
+    Note over Siswa: Internet putus: antrean disimpan di perangkat,<br/>dikirim lagi saat tersambung
   end
   Siswa->>Server: Kirim tes awal (nilai dihitung server)
   Pendamping->>Server: Belajar, lalu Posttest
@@ -124,6 +127,7 @@ sequenceDiagram
 | Lapisan | Teknologi |
 |---|---|
 | Antarmuka | Next.js 16 (App Router), React 19, TypeScript, CSS biasa, font Nunito lokal, ikon Lucide |
+| Maskot 3D | three.js r186 (dimuat dinamis, satu renderer bersama), model prosedural tanpa file 3D |
 | Server | Route Handlers di `app/api`, node-postgres dengan `attachDatabasePool` |
 | Data | Neon Postgres (paket Free, Singapura), skema di `db/schema.sql` |
 | Ekspor | exceljs (dimuat saat diperlukan), fflate untuk ZIP, Canvas untuk sertifikat |
@@ -175,6 +179,8 @@ PENDAMPING_PASSWORD=<kata sandi uji lokal>
 app/
   api/                 Route Handlers siswa dan pendamping
   pendamping/          Halaman dashboard
+  not-found.tsx        Halaman tidak ditemukan (bahasa Indonesia)
+  error.tsx            Layar galat ramah anak dengan tombol Coba lagi
   globals.css          Seluruh gaya, termasuk layar pendek Chromebook
 components/
   experience.tsx       Alur siswa, sinkron tahap, antrean simpan jawaban
@@ -184,7 +190,9 @@ components/
   analytics.tsx        Tab Analitik
   certificates.tsx     Tab Sertifikat
   robot.tsx            Aiko (pose 2D) dan ikon
+  aiko-3d.tsx          Aiko 3D: fallback 2D, pemuatan saat senggang, ketuk dan tatapan
 lib/
+  aiko3d/engine.ts     Model, pose, dan renderer three.js bersama
   server/              Database, sesi, konten berkunci, query
   certificate.ts       Penomoran dan penggambaran sertifikat
   export-excel.ts      Rekap Excel berformat
@@ -200,6 +208,8 @@ council-out/           (lokal) laporan tinjauan multi-peran
 - [ ] Izin tertulis kepala sekolah untuk pengumpulan nama, kelas, dan jawaban siswa.
 - [ ] Daftar absen kelas 5 dan 6; tandai nama yang sama atau mirip dan minta anak tersebut menambahkan nomor absen.
 - [ ] Gladi di 2 sampai 3 Chromebook sekolah lewat Wi-Fi sekolah, lalu **Mulai sesi baru**.
+- [ ] Saat gladi, buka `https://prodamat.vercel.app/?aiko3d=paksa`, tekan F12, dan lihat baris `Aiko 3D: NN fps` di Console. Sekitar 28 sampai 30 berarti lancar. Bila beberapa Chromebook tersendat bersamaan, matikan saklar **Aiko 3D** di dashboard.
+- [ ] Uji internet putus di satu Chromebook: matikan Wi-Fi saat mengerjakan, jawab dua soal, nyalakan lagi, dan pastikan label berubah menjadi *Tersimpan*.
 - [ ] Semua pendamping masuk dashboard sebelum anak datang (sesi 12 jam).
 - [ ] Hanya satu orang yang menekan tombol tahap.
 - [ ] Pindah ke Belajar setelah jumlah *Pretest selesai* sama dengan jumlah anak hadir.

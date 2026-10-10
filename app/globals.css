@@ -545,7 +545,8 @@ th:last-child:has(.sr-only) { background: #f5f7fa; }
   .question-fieldset legend { font-size: 21px; }
   .question-instruction { font-size: 15px; margin-bottom: 18px; }
   .quiz-navigation { flex-wrap: wrap; gap: 12px; }
-  .quiz-navigation .button { flex: 1; padding-inline: 14px; }
+  .quiz-navigation .button { flex: 1; padding-inline: 12px; white-space: nowrap; }
+  .quiz-navigation .button:last-child { flex: 1.7; }
   .save-label { order: 3; width: 100%; }
   .quiz-hint { text-align: center; font-size: 14px; }
   .completion-art { width: 180px; }
@@ -577,6 +578,8 @@ th:last-child:has(.sr-only) { background: #f5f7fa; }
   .admin-stats dd span { display: block; margin: 5px 0 0; font-size: 12px; }
   .admin-stats p { display: none; }
   .roster-top { padding: 16px; gap: 14px; }
+  .admin-tabs { flex-wrap: wrap; gap: 4px; }
+  .admin-tabs button { padding-inline: 10px; white-space: nowrap; }
   .admin-tabs { gap: 2px; width: 100%; justify-content: space-between; }
   .admin-tabs button { font-size: 14px; padding-inline: 8px; }
   .table-controls { padding: 18px 16px; flex-direction: column; gap: 14px; }
@@ -612,6 +615,33 @@ th:last-child:has(.sr-only) { background: #f5f7fa; }
 .join-missing { margin: -10px 0 12px; text-align: center; }
 /* Layar pendek seperti Chromebook 1366x768 (sekitar 630px tersisa di browser): soal dirapatkan, navigasi menempel di bawah. */
 @media (max-height: 820px) and (min-width: 601px) {
+  /* Kepala halaman dan layar siswa dirapatkan agar tombol utama terlihat tanpa menggulir. */
+  .institution-header { min-height: 76px; padding-block: 10px; }
+  .institution-seal { width: 52px; height: 52px; }
+  .institution-copy strong { font-size: 18px; }
+  .institution-wordmark { width: 170px; }
+  .navigation-row { min-height: 50px; }
+  .hero { margin-top: 18px; padding-block: 32px; }
+  .hero h1 { margin-block: 10px 12px; }
+  .hero-actions { margin-top: 22px; }
+  .student-layout, .instructions-layout, .results-layout, .completion-layout { padding-top: 16px; }
+  .join-title { margin-top: 6px; }
+  .join-panel { padding: 22px 28px; }
+  .class-options { margin-block: 18px; }
+  .class-options label { min-height: 70px; padding-block: 10px; }
+  .privacy-note { margin-top: 12px; }
+  .aiko-says { margin-block: 10px 16px; }
+  .hub-heading h1 { font-size: 38px; }
+  .aiko-says .aiko3d { width: 100px; }
+  .journey-live .stop { flex-direction: row; gap: 14px; padding: 18px 20px; }
+  .journey-live .stop.now { padding: 17px 19px; }
+  .journey-live .stop-token, .journey-live .stop:first-child .stop-token { width: 46px; height: 46px; }
+  .practice-panel { padding: 22px 26px; }
+  .practice-panel h2 { margin-bottom: 14px; }
+  .practice-panel > .button { margin-top: 16px; }
+  .completion-art { width: 140px; margin-bottom: 4px; }
+  .completion-layout h1 { font-size: 40px; margin-block: 4px 8px; }
+  .completion-note { margin-block: 10px 14px; padding-block: 12px; }
   .quiz-layout { padding-block: 12px 24px; }
   .quiz-top { margin-bottom: 8px; }
   .quiz-card { padding: 18px 26px 20px; }
@@ -745,7 +775,8 @@ th:last-child:has(.sr-only) { background: #f5f7fa; }
   .hist-plot { gap: 3px; }
   .cert-actions .button { width: 100%; }
 }
-.cert-format { width: max-content; margin-top: 16px; }
+.cert-format { width: max-content; max-width: 100%; margin-top: 16px; }
+.cert-format button { flex: 1 1 auto; padding-inline: 12px; }
 /* Aiko 3D: lapisan kanvas menumpuk di atas Aiko 2D; 2D memudar saat 3D siap. Lapisan sedikit lebih besar agar lengan terangkat dan konfeti tidak terpotong. */
 .aiko3d { position: relative; display: block; }
 .aiko3d > .aiko3d-fallback { width: 100% !important; transition: opacity .5s ease; }
@@ -767,3 +798,18 @@ th:last-child:has(.sr-only) { background: #f5f7fa; }
 @media (prefers-reduced-motion: reduce) { .aiko3d-layer, .aiko3d > .aiko3d-fallback { transition: none; } }
 .aiko-says .aiko3d { width: 128px; }
 @media (max-width: 600px) { .aiko-says .aiko3d { width: 96px; } }
+/* Chromebook (lebar tetapi pendek): latihan dua kolom, judul dan aturan di kiri, soal latihan di kanan. */
+@media (max-height: 820px) and (min-width: 1000px) {
+  .instructions-layout { max-width: 1060px; display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); grid-template-rows: auto auto auto 1fr; column-gap: 36px; align-items: start; }
+  .instructions-layout > * { grid-column: 1; justify-self: start; }
+  .instructions-layout > .practice-panel { justify-self: stretch; }
+  .instructions-layout > .practice-panel { grid-column: 2; grid-row: 1 / span 4; margin-top: 8px; }
+  .instructions-layout .rule-list { flex-direction: column; align-items: flex-start; justify-content: flex-start; margin-top: 4px; }
+  /* Form nama: judul dan Aiko di kiri, isian di kanan, sehingga tombol Ayo masuk terlihat tanpa menggulir. */
+  .join-layout { max-width: 1060px; display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); grid-template-rows: auto auto 1fr; column-gap: 36px; align-items: start; }
+  .join-layout > * { grid-column: 1; justify-self: start; }
+  .join-layout > .join-panel { grid-column: 2; grid-row: 1 / span 3; justify-self: stretch; margin-top: 8px; }
+}
+@media (max-width: 400px) {
+  .quiz-navigation .button { gap: 6px; padding-inline: 10px; font-size: 17px; }
+}
