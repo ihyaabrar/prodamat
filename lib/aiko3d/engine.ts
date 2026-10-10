@@ -27,12 +27,12 @@ function createEngine() {
   canvas.className = "aiko3d-canvas";
   canvas.setAttribute("aria-hidden", "true");
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "low-power" });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFShadowMap;
+  // Tanpa shadow map (hemat satu render pass per frame); bayangan di lantai memakai gambar bulat buram.
+  let pixelRatio = Math.min(window.devicePixelRatio, 1.5);
+  renderer.setPixelRatio(pixelRatio);
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100);
@@ -47,11 +47,6 @@ function createEngine() {
   scene.add(new THREE.HemisphereLight(0xffffff, 0xb8c8e6, 1.35));
   const key = new THREE.DirectionalLight(0xffffff, 2.4);
   key.position.set(-1.6, 8, 3.2);
-  key.castShadow = true;
-  key.shadow.mapSize.set(512, 512);
-  Object.assign(key.shadow.camera, { left: -4, right: 4, top: 4, bottom: -4 });
-  key.shadow.radius = 5;
-  key.shadow.bias = -0.0005;
   scene.add(key);
   const rim = new THREE.DirectionalLight(0xbcd2ff, 1.6);
   rim.position.set(4, 3, -5);
@@ -69,9 +64,8 @@ function createEngine() {
     lamp: new THREE.MeshStandardMaterial({ color: 0xffc94d, emissive: 0xffb420, emissiveIntensity: 0.55, roughness: 0.35 }),
     book: plastic(0x2244bd), paper: plastic(0xfff8e6, { clearcoat: 0 }),
   };
-  const shadowed = <T extends THREE.Mesh>(mesh: T) => { mesh.castShadow = true; mesh.receiveShadow = true; return mesh; };
-  const box = (w: number, h: number, d: number, r: number, mat: THREE.Material, seg = 6) => shadowed(new THREE.Mesh(new RoundedBoxGeometry(w, h, d, seg, r), mat));
-  const capsule = (r: number, len: number, mat: THREE.Material) => shadowed(new THREE.Mesh(new THREE.CapsuleGeometry(r, len, 6, 16), mat));
+  const box = (w: number, h: number, d: number, r: number, mat: THREE.Material, seg = 6) => (new THREE.Mesh(new RoundedBoxGeometry(w, h, d, seg, r), mat));
+  const capsule = (r: number, len: number, mat: THREE.Material) => (new THREE.Mesh(new THREE.CapsuleGeometry(r, len, 6, 16), mat));
   const tube = (points: [number, number, number][], radius: number, mat: THREE.Material) =>
     new THREE.Mesh(new THREE.TubeGeometry(new THREE.QuadraticBezierCurve3(...points.map(p => new THREE.Vector3(...p)) as [THREE.Vector3, THREE.Vector3, THREE.Vector3]), 20, radius, 8, false), mat);
 
@@ -97,13 +91,13 @@ function createEngine() {
   logo.anisotropy = 4;
   const badge = new THREE.Mesh(new THREE.PlaneGeometry(0.66, 0.66 * 243 / 640), new THREE.MeshBasicMaterial({ map: logo, transparent: true, toneMapped: false }));
   badge.position.set(0, -1.3, 0.563); torso.add(badge);
-  const neck = shadowed(new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.3, 0.1, 20), M.neck)); neck.position.y = -0.66; torso.add(neck);
+  const neck = (new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.3, 0.1, 20), M.neck)); neck.position.y = -0.66; torso.add(neck);
 
   const makeArm = (side: number) => {
     const shoulder = new THREE.Group(); shoulder.position.set(side * 0.78, -0.95, 0);
     const upper = capsule(0.135, 0.52, M.limb); upper.position.y = -0.36; shoulder.add(upper);
     const wrist = new THREE.Group(); wrist.position.y = -0.78; shoulder.add(wrist);
-    wrist.add(shadowed(new THREE.Mesh(new THREE.SphereGeometry(0.15, 20, 14), M.limbDark)));
+    wrist.add((new THREE.Mesh(new THREE.SphereGeometry(0.15, 20, 14), M.limbDark)));
     for (const [x, z, tilt] of [[-0.09, 0.03, 0.35], [0, 0.05, 0], [0.09, 0.03, -0.35]]) {
       const finger = capsule(0.045, 0.12, M.limbDark); finger.position.set(x * side, -0.15, z); finger.rotation.z = tilt * side; wrist.add(finger);
     }
@@ -123,11 +117,11 @@ function createEngine() {
     // Alis lembut untuk pose menenangkan; sepasang, miring ke dalam.
     const brow = tube([[-0.11, 0, 0], [0, 0.05, 0], [0.11, 0, 0]], 0.022, M.glow); brow.position.set(side * 0.42, 0.3, 0); brow.rotation.z = side * -0.18; brows.add(brow);
     const cheek = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 10), M.cheek); cheek.scale.set(0.11, 0.06, 0.02); cheek.position.set(side * 0.6, -0.17, 0); face.add(cheek);
-    const ear = shadowed(new THREE.Mesh(new THREE.CylinderGeometry(0.19, 0.19, 0.14, 24), M.ear)); ear.rotation.z = Math.PI / 2; ear.position.set(side * 1.08, 0.5, 0); head.add(ear);
+    const ear = (new THREE.Mesh(new THREE.CylinderGeometry(0.19, 0.19, 0.14, 24), M.ear)); ear.rotation.z = Math.PI / 2; ear.position.set(side * 1.08, 0.5, 0); head.add(ear);
   }
   const mouth = tube([[-0.2, 0, 0], [0, -0.22, 0], [0.2, 0, 0]], 0.035, M.glow); mouth.position.y = -0.16; face.add(mouth);
-  const antenna = shadowed(new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.05, 0.42, 10), M.neck)); antenna.position.y = 1.46; head.add(antenna);
-  const lamp = shadowed(new THREE.Mesh(new THREE.SphereGeometry(0.15, 20, 14), M.lamp)); lamp.position.y = 1.74; head.add(lamp);
+  const antenna = (new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.05, 0.42, 10), M.neck)); antenna.position.y = 1.46; head.add(antenna);
+  const lamp = (new THREE.Mesh(new THREE.SphereGeometry(0.15, 20, 14), M.lamp)); lamp.position.y = 1.74; head.add(lamp);
 
   const book = new THREE.Group();
   for (const side of [-1, 1]) {
@@ -140,8 +134,13 @@ function createEngine() {
   }
   book.position.set(0, -1.05, 0.95); book.rotation.x = -0.35; book.visible = false; torso.add(book);
 
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(8, 8), new THREE.ShadowMaterial({ opacity: 0.16 }));
-  ground.rotation.x = -Math.PI / 2; ground.position.y = -2.52; ground.receiveShadow = true; scene.add(ground);
+  const blob = document.createElement("canvas"); blob.width = blob.height = 64;
+  const blobContext = blob.getContext("2d")!;
+  const gradient = blobContext.createRadialGradient(32, 32, 0, 32, 32, 32);
+  gradient.addColorStop(0, "rgba(20,40,90,0.28)"); gradient.addColorStop(1, "rgba(20,40,90,0)");
+  blobContext.fillStyle = gradient; blobContext.fillRect(0, 0, 64, 64);
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 1.3), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(blob), transparent: true, depthWrite: false }));
+  ground.rotation.x = -Math.PI / 2; ground.position.set(0, -2.5, 0.1); scene.add(ground);
 
   // Konfeti sekali jalan saat merayakan
   const confetti: THREE.Mesh[] = [];
@@ -172,7 +171,10 @@ function createEngine() {
   let active: { pose: AikoPose; start: number } | null = null;
   let clock = 0, carry = 0, last = 0, blinkAt = 2;
   const look = { x: 0, y: 0, tx: 0, ty: 0 };
-  let frames = 0, measureFrom = 0, onSlow: (() => void) | null = null, onMeasure: ((fps: number) => void) | null = null;
+  // Uji kelancaran sekali per sesi: pemanasan 0,5 detik, ukur 2 detik. Bila kurang lancar, resolusi diturunkan dulu
+  // dan diukur ulang; baru bila tetap di bawah 22 fps Aiko kembali 2D.
+  let measuring = false, warm = false, measured = false, frames = 0, measureFrom = 0;
+  let onSlow: (() => void) | null = null, onMeasure: ((fps: number) => void) | null = null, onLost: (() => void) | null = null;
 
   function play(pose: AikoPose) {
     if (pose === "celebrate") burst();
@@ -192,6 +194,7 @@ function createEngine() {
     const breath = Math.sin(clock * 2.1);
     torso.scale.set(1 + breath * 0.006, 1 + breath * 0.012, 1);
     hips.position.y = p.hop;
+    ground.scale.setScalar(1 - p.hop * 0.6); ground.material.opacity = 1 - p.hop;
     torso.rotation.z = p.lean;
     look.x += (look.tx - look.x) * 0.08; look.y += (look.ty - look.y) * 0.08;
     head.rotation.set(p.headX + breath * 0.012 - look.y * 0.18, p.headY + look.x * 0.42, p.headZ);
@@ -218,38 +221,57 @@ function createEngine() {
   }
   const observer = new ResizeObserver(resize);
 
-  // Dibatasi 30 fps untuk menghemat baterai Chromebook; fps sesungguhnya diukur 2 detik pertama.
+  // Dibatasi 30 fps saat bergerak dan 15 fps saat hanya bernapas, untuk menghemat baterai dan GPU Chromebook.
   function loop(now: number) {
     const dt = Math.min((now - last) / 1000, 0.1);
     last = now;
     carry += dt;
-    if (carry < FRAME) return;
+    const busy = measuring || active || confetti.length > 0 || Math.abs(look.tx - look.x) + Math.abs(look.ty - look.y) > 0.01;
+    // Toleransi 4 ms: tanpa ini dua tik layar 60 Hz kadang dianggap kurang dari 1/30 detik dan Aiko turun ke 20 fps.
+    if (carry < (busy ? FRAME : FRAME * 2) - 0.004) return;
     const step = carry; carry = 0;
     clock += step;
     apply(target());
     updateConfetti(step);
     renderer.render(scene, camera);
-    if (onSlow || onMeasure) {
-      frames++;
-      const elapsed = (now - measureFrom) / 1000;
-      if (elapsed > 2) {
-        const fps = frames / elapsed, slow = onSlow, report = onMeasure;
-        onSlow = null; onMeasure = null;
-        report?.(Math.round(fps));
-        if (slow && fps < 22) slow();
-      }
+    if (measuring) measure(now);
+  }
+  function measure(now: number) {
+    const elapsed = (now - measureFrom) / 1000;
+    if (warm) { if (elapsed > 0.5) { warm = false; frames = 0; measureFrom = now; } return; }
+    frames++;
+    if (elapsed < 2) return;
+    const fps = frames / elapsed;
+    if (fps < 26 && pixelRatio > 1) {
+      pixelRatio = 1; renderer.setPixelRatio(1); resize();
+      frames = 0; measureFrom = now;
+      return;
     }
+    measuring = false; measured = true;
+    onMeasure?.(Math.round(fps));
+    if (fps < 22) onSlow?.();
   }
 
-  return {
-    mount(element: HTMLElement, options: { onSlow?: () => void; onMeasure?: (fps: number) => void; framing?: Framing } = {}) {
+  // Bila GPU melepas konteks WebGL (memori menipis), Aiko kembali 2D di layar ini; layar berikutnya memakai mesin baru.
+  canvas.addEventListener("webglcontextlost", event => {
+    event.preventDefault();
+    renderer.setAnimationLoop(null);
+    if (shared === engine) shared = null;
+    onLost?.();
+  });
+
+  const engine = {
+    mount(element: HTMLElement, options: { onSlow?: () => void; onMeasure?: (fps: number) => void; onLost?: () => void; framing?: Framing } = {}) {
       setFraming(options.framing ?? "full");
       if (host) observer.unobserve(host);
       host = element;
       element.appendChild(canvas);
       observer.observe(element);
       resize();
-      frames = 0; measureFrom = performance.now(); onSlow = options.onSlow ?? null; onMeasure = options.onMeasure ?? null;
+      // Arah pandang dari layar sebelumnya tidak dibawa ke layar baru.
+      look.x = look.y = look.tx = look.ty = 0;
+      onSlow = options.onSlow ?? null; onMeasure = options.onMeasure ?? null; onLost = options.onLost ?? null;
+      measuring = !measured; warm = true; frames = 0; measureFrom = performance.now();
       last = performance.now();
       renderer.setAnimationLoop(loop);
     },
@@ -257,13 +279,22 @@ function createEngine() {
       if (host !== element) return;
       observer.unobserve(element);
       if (canvas.parentElement === element) element.removeChild(canvas);
-      host = null; onSlow = null;
+      host = null; onSlow = null; onLost = null;
+      if (measuring) measuring = false;
       renderer.setAnimationLoop(null);
     },
-    pause(paused: boolean) { renderer.setAnimationLoop(paused || !host ? null : loop); last = performance.now(); },
+    pause(paused: boolean) {
+      renderer.setAnimationLoop(paused || !host ? null : loop);
+      last = performance.now();
+      // Uji kelancaran yang terpotong karena tab atau Aiko tersembunyi dimulai ulang, agar tidak salah dianggap lambat.
+      if (!paused && measuring) { warm = true; frames = 0; measureFrom = last; }
+    },
     play,
     lookAt(x: number, y: number) { look.tx = Math.max(-1, Math.min(1, x)); look.ty = Math.max(-1, Math.min(1, y)); },
   };
+  // Kompilasi shader di depan agar frame pertama tidak tersendat.
+  renderer.compile(scene, camera);
+  return engine;
 }
 
 export function webglAvailable() {

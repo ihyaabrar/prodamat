@@ -40,8 +40,10 @@ export function Aiko3D({ pose, enabled, replay = 0, className = "", onTap, tapLa
       if (cancelled || !webglAvailable()) return;
       const instance = getEngine();
       engine.current = instance;
-      instance.mount(element, forced() ? { framing, onMeasure: fps => console.info(`Aiko 3D: ${fps} fps`) } : {
+      const lost = () => { instance.unmount(element); engine.current = null; setLive(false); };
+      instance.mount(element, forced() ? { framing, onLost: lost, onMeasure: fps => console.info(`Aiko 3D: ${fps} fps`) } : {
         framing,
+        onLost: lost,
         onSlow: () => {
           try { sessionStorage.setItem(SLOW_KEY, "1"); } catch {}
           instance.unmount(element);

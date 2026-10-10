@@ -24,6 +24,10 @@ Tidak muncul di: layar soal, form nama dan kelas, dialog, dan dashboard pendampi
 1. Gambar 2D tampil lebih dulu; three.js dimuat belakangan saat browser senggang, lalu Aiko 3D muncul perlahan menggantikan gambar 2D di tempat yang sama. Tidak pernah ada kotak kosong.
 2. Tetap 2D bila: WebGL tidak tersedia, pengaturan kurangi gerak aktif, mode hemat data, memori perangkat 2 GB atau kurang, atau kecepatan render di bawah 22 fps selama 2 detik pertama (render dibatasi 30 fps). Perangkat yang tersendat ditandai untuk sisa sesi browser. Parameter `?aiko3d=paksa` melewati pemeriksaan ini untuk meninjau, dan mencatat fps di console.
 3. Satu renderer dipakai bergantian antar layar; rendering berhenti saat Aiko tidak terlihat atau tab tidak aktif; kepadatan piksel dibatasi 1,5.
+   - 30 fps hanya saat Aiko bergerak, 15 fps saat hanya bernapas dan berkedip.
+   - Tanpa shadow map; bayangan lantai berupa gambar bulat buram (satu render pass per frame).
+   - Uji kelancaran sekali per sesi, setelah pemanasan 0,5 detik. Bila di bawah 26 fps, resolusi diturunkan ke 1x lalu diukur ulang; baru bila tetap di bawah 22 fps Aiko kembali 2D.
+   - Bila GPU melepas konteks WebGL, Aiko di layar itu kembali 2D, bukan kotak kosong.
 4. Hanya inti three.js dan RoundedBoxGeometry yang dibundel (tanpa OrbitControls), dimuat dari server aplikasi sendiri, bukan CDN.
 5. Saklar pendamping: dashboard mendapat pilihan "Aiko 3D" (aktif/mati) yang berlaku untuk semua perangkat siswa dalam beberapa detik, seperti pergantian tahap. Bila saat gladi atau hari-H ada Chromebook yang tersendat, pendamping mematikannya tanpa perlu deploy ulang.
 
