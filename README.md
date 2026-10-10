@@ -63,7 +63,7 @@ Anak mengerjakan **tes awal (pretest)** sebelum materi, mengikuti materi dan per
 - **Aiko sebagai pemandu.** Satu gelembung, satu instruksi per layar. Pose berganti sesuai situasi: melambai, membaca, berpikir, merayakan, menenangkan. Aiko tidak tampil di layar soal agar anak fokus.
 - **Aiko 3D sebagai pemanis.** Di beranda, halaman petualangan, layar selesai, dan hasil, Aiko 2D berganti menjadi Aiko 3D (three.js) yang bergerak, bisa diketuk, dan menoleh mengikuti kursor. Otomatis tetap 2D bila perangkat lambat, tanpa WebGL, atau memakai kurangi gerak; pendamping bisa mematikannya dari dashboard. Konsep: `output/ui-concept/konsep-aiko-3d.md`.
 - **Jalur petualangan.** Langkah yang sedang dibuka berwarna biru dengan tombol, langkah selesai hijau, langkah terkunci menyebut alasannya.
-- **Jawaban aman saat Wi-Fi tersendat.** Setiap klik langsung disimpan, dicoba ulang otomatis, dan bila tetap gagal muncul tombol **Simpan lagi**. Tombol kirim menunggu sampai semua tersimpan.
+- **Jawaban aman saat internet terputus.** Setiap klik langsung disimpan ke server. Bila internet putus, jawaban disimpan di perangkat, anak tetap bisa lanjut mengerjakan, dan semuanya dikirim otomatis begitu tersambung lagi, termasuk setelah halaman dimuat ulang atau Chromebook dinyalakan ulang. Tombol kirim menunggu sampai semua terkirim.
 - **Muat di Chromebook.** Pada layar pendek soal dirapatkan dan tombol Lanjut menempel di bawah, jadi anak tidak perlu menggulir.
 - **Hasil yang ramah.** Pesan ditentukan dari nilai tes akhir; nilai yang turun tidak ditampilkan sebagai angka minus. Pembahasan baru dibuka saat pendamping menutup sesi agar kunci tidak tersebar ke teman yang masih mengerjakan.
 

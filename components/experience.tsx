@@ -19,6 +19,17 @@ export type SaveState = "idle" | "saving" | "saved" | "error";
 type PendingSave = { kind: TestKind; index: number; answer: number };
 const POLL_MS = 8000;
 const RETRY_DELAYS = [1000, 2000, 4000];
+const RESEND_MS = 10000;
+// Antrean jawaban yang belum terkirim juga disimpan di perangkat, agar tidak hilang bila halaman dimuat ulang,
+// tab tertutup, atau Chromebook mati saat internet terputus. Dikirim lagi begitu siswa yang sama membuka aplikasi.
+const QUEUE_KEY = "prodamat.antrean-jawaban";
+type StoredQueue = { code: string; items: PendingSave[] };
+function readStoredQueue(): StoredQueue | null {
+  try { const raw = localStorage.getItem(QUEUE_KEY); return raw ? JSON.parse(raw) as StoredQueue : null; } catch { return null; }
+}
+function writeStoredQueue(code: string | undefined, items: PendingSave[]) {
+  try { if (code && items.length) localStorage.setItem(QUEUE_KEY, JSON.stringify({ code, items })); else localStorage.removeItem(QUEUE_KEY); } catch {}
+}
 
 export function Experience({ admin = false }: { admin?: boolean }) {
   const [help, setHelp] = useState(false);
@@ -50,6 +61,9 @@ function StudentApp({ mainRef, homeSignal }: { mainRef: React.RefObject<HTMLElem
   useEffect(() => { view.current = { screen, kind }; }, [screen, kind]);
   const signedIn = useRef(false);
   useEffect(() => { signedIn.current = !!me?.participant; }, [me?.participant]);
+  const code = useRef<string | undefined>(undefined);
+  useEffect(() => { code.current = me?.participant?.code; }, [me?.participant?.code]);
+  const remember = () => writeStoredQueue(code.current, [...queue.current.values()]);
 
   // Saat sedang mengerjakan soal, jawaban lokal dipertahankan agar sinkron berkala tidak menimpa pilihan yang sedang disimpan.
   const load = useCallback(async () => {
@@ -105,11 +119,40 @@ function StudentApp({ mainRef, homeSignal }: { mainRef: React.RefObject<HTMLElem
     setScreen("hub");
   }, [participant, phase, screen, kind]);
 
+  // Tersambung lagi: muat ulang data dan kirim antrean. Wi-Fi sekolah sering tampak "online" padahal server belum
+  // terjangkau, jadi selama ada jawaban yang belum terkirim, pengiriman juga dicoba ulang berkala.
   useEffect(() => {
-    const online = () => { if (queue.current.size) void flush(); };
+    const online = () => { void load(); if (queue.current.size) void flush(); };
     window.addEventListener("online", online);
     return () => window.removeEventListener("online", online);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (save !== "error") return;
+    const timer = window.setInterval(() => { if (queue.current.size) void flush(); }, RESEND_MS);
+    return () => window.clearInterval(timer);
+  }, [save]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (me) return;
+    const timer = window.setInterval(() => void load(), RESEND_MS);
+    return () => window.clearInterval(timer);
+  }, [!!me, load]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Antrean dari perangkat dipulihkan sekali, hanya untuk siswa yang sama dan tes yang belum dikirim.
+  const restored = useRef(false);
+  useEffect(() => {
+    if (!participant || restored.current) return;
+    restored.current = true;
+    const stored = readStoredQueue();
+    if (!stored || stored.code !== participant.code) { writeStoredQueue(undefined, []); return; }
+    for (const item of stored.items) {
+      const key = `${item.kind}:${item.index}`;
+      if (!participant[item.kind]?.submittedAt && !queue.current.has(key)) queue.current.set(key, item);
+    }
+    remember();
+    if (!queue.current.size) return;
+    for (const test of new Set([...queue.current.values()].map(item => item.kind))) applyServerAnswers(test, participant[test]?.answers ?? blankAnswers());
+    void flush();
+  }, [participant?.code]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleError(error: unknown) {
     const status = errorStatus(error);
@@ -128,7 +171,7 @@ function StudentApp({ mainRef, homeSignal }: { mainRef: React.RefObject<HTMLElem
   async function changeParticipant() {
     try {
       await api("/api/peserta/saya", { method: "DELETE" });
-      queue.current.clear(); setSave("idle");
+      queue.current.clear(); remember(); setSave("idle");
       setMe(previous => previous && { ...previous, participant: null }); setResults(null); setScreen("join");
     } catch (error) { setNotice(errorMessage(error)); }
   }
@@ -153,7 +196,7 @@ function StudentApp({ mainRef, homeSignal }: { mainRef: React.RefObject<HTMLElem
         try {
           const { answers } = await api<{ answers: (number | null)[] }>("/api/jawaban", { method: "PUT", body: change });
           retries = 0;
-          if (queue.current.get(key) === change) queue.current.delete(key);
+          if (queue.current.get(key) === change) { queue.current.delete(key); remember(); }
           applyServerAnswers(change.kind, answers);
         } catch (error) {
           const status = errorStatus(error);
@@ -162,7 +205,7 @@ function StudentApp({ mainRef, homeSignal }: { mainRef: React.RefObject<HTMLElem
             setSave("error");
             return;
           }
-          queue.current.clear(); setSave("idle"); handleError(error);
+          queue.current.clear(); remember(); setSave("idle"); handleError(error);
           return;
         }
       }
@@ -176,6 +219,7 @@ function StudentApp({ mainRef, homeSignal }: { mainRef: React.RefObject<HTMLElem
     const attempt = participant[kind] ?? { answers: blankAnswers(), submittedAt: null };
     setMe({ phase, aiko3d: me?.aiko3d ?? true, participant: { ...participant, [kind]: { ...attempt, answers: attempt.answers.map((old, number) => number === index ? value : old) } } });
     queue.current.set(`${kind}:${index}`, { kind, index, answer: value });
+    remember();
     void flush();
   }
   async function submit() {
