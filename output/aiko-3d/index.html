@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aiko 3D · Pratinjau</title>
+<style>
+  @font-face { font-family: "Nunito"; src: url("../aiko-asset-pack/vendor/fonts/nunito-400.woff2") format("woff2"); font-weight: 400; }
+  @font-face { font-family: "Nunito"; src: url("../aiko-asset-pack/vendor/fonts/nunito-800.woff2") format("woff2"); font-weight: 800; }
+  @font-face { font-family: "Nunito"; src: url("../aiko-asset-pack/vendor/fonts/nunito-900.woff2") format("woff2"); font-weight: 900; }
+  :root { --paper: #fbf9f3; --ink: #1f2d44; --muted: #4d5b6e; --blue: #3158df; --blue-dark: #2244bd; --blue-deep: #1a3496; --blue-wash: #eef2ff; --sun: #ffc94d; --sun-deep: #d99a14; --line: #e2e4e8; --edge: #808c9d; }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; background: var(--paper); color: var(--ink); font: 400 17px/1.5 "Nunito", system-ui, sans-serif; }
+  .page { width: min(1160px, calc(100% - 32px)); margin: 24px auto 40px; display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(280px, .65fr); gap: 24px; align-items: start; }
+  .stage { position: relative; aspect-ratio: 4 / 3.4; border-radius: 32px; background: var(--blue); overflow: hidden; }
+  .stage::before { content: ""; position: absolute; left: 50%; bottom: 6%; width: 64%; aspect-ratio: 1; transform: translateX(-50%); border-radius: 50%; background: #4669e3; }
+  .stage canvas { position: absolute; inset: 0; width: 100% !important; height: 100% !important; display: block; cursor: grab; }
+  .stage canvas:active { cursor: grabbing; }
+  .badge { position: absolute; top: 16px; left: 16px; z-index: 1; padding: 6px 12px; border-radius: 10px; background: #ffffffe6; font-size: 13px; font-weight: 800; color: var(--blue-dark); }
+  .hint { position: absolute; bottom: 14px; left: 0; right: 0; z-index: 1; text-align: center; color: #e4eaff; font-size: 13px; font-weight: 700; }
+  .panel { background: #fff; border: 2px solid var(--line); border-radius: 24px; padding: 22px; }
+  h1 { margin: 0; font-size: 28px; font-weight: 900; line-height: 1.15; }
+  .lede { margin: 6px 0 18px; color: var(--muted); font-size: 15px; }
+  .poses { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  button { font: inherit; cursor: pointer; }
+  .pose { min-height: 64px; padding: 10px 12px; text-align: left; border: 2px solid var(--edge); border-radius: 16px; background: #fff; box-shadow: 0 4px 0 var(--edge); color: var(--ink); transition: transform .12s, box-shadow .12s, background .15s, border-color .15s; }
+  .pose:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--edge); }
+  .pose strong { display: block; font-size: 15px; font-weight: 900; }
+  .pose span { display: block; font-size: 12px; color: var(--muted); }
+  .pose[aria-pressed="true"] { border-color: var(--blue); background: var(--blue-wash); box-shadow: 0 4px 0 var(--blue); }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+  .btn { min-height: 46px; padding: 10px 16px; border: 2px solid transparent; border-radius: 14px; font-weight: 900; font-size: 15px; }
+  .btn.primary { background: var(--blue); color: #fff; box-shadow: 0 4px 0 var(--blue-deep); }
+  .btn.sun { background: var(--sun); color: var(--ink); box-shadow: 0 4px 0 var(--sun-deep); }
+  .btn.ghost { background: #fff; border-color: var(--edge); color: var(--ink); box-shadow: 0 3px 0 var(--edge); }
+  .btn:active { transform: translateY(2px); box-shadow: none; }
+  .check { display: flex; gap: 10px; align-items: center; margin-top: 16px; font-size: 14px; font-weight: 800; }
+  .check input { width: 20px; height: 20px; accent-color: var(--blue); }
+  .note { margin-top: 16px; padding: 12px 14px; border-radius: 14px; background: #f5f7fa; color: var(--muted); font-size: 13px; }
+  :focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+  .fallback { position: absolute; inset: 0; display: none; place-items: center; color: #fff; font-weight: 800; padding: 24px; text-align: center; }
+  @media (max-width: 860px) { .page { grid-template-columns: 1fr; } }
+  /* Mode presentasi untuk proyektor */
+  body:not(.presenting) .present-only { display: none !important; }
+  body.presenting { overflow: hidden; }
+  body.presenting .page { margin: 0; width: 100%; display: block; }
+  body.presenting .panel, body.presenting .badge, body.presenting .hint { display: none; }
+  body.presenting .stage { position: fixed; inset: 0; z-index: 10; aspect-ratio: auto; border-radius: 0; }
+  body.presenting .stage::before { width: min(58vw, 78vh); bottom: 8%; }
+  .show-title { position: absolute; top: 4vh; left: 4vw; z-index: 2; color: #fff; }
+  .show-title p { margin: 0; color: #e4eaff; font-size: clamp(14px, 1.6vw, 22px); font-weight: 800; }
+  .show-title h2 { margin: .2em 0 0; font-size: clamp(36px, 5.6vw, 84px); font-weight: 900; line-height: 1; letter-spacing: -1px; }
+  .show-bubble { position: absolute; top: 18vh; right: 5vw; z-index: 2; max-width: min(34vw, 520px); padding: 1em 1.3em; border-radius: 26px 26px 26px 8px; background: #fff; color: var(--ink); font-size: clamp(18px, 2.1vw, 32px); font-weight: 800; line-height: 1.3; }
+  .show-bar { position: absolute; left: 0; right: 0; bottom: 3vh; z-index: 2; display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; padding: 0 3vw; }
+  .show-bar button { min-height: 52px; padding: 10px 18px; border: 0; border-radius: 16px; background: #ffffffee; color: var(--ink); font-size: clamp(14px, 1.3vw, 18px); font-weight: 900; box-shadow: 0 4px 0 #1a3496; }
+  .show-bar button kbd { margin-right: 6px; padding: 1px 7px; border-radius: 6px; background: var(--blue-wash); color: var(--blue-dark); font: inherit; font-size: .8em; }
+  .show-bar button[aria-pressed="true"] { background: var(--sun); box-shadow: 0 4px 0 var(--sun-deep); }
+  .show-bar .exit { background: transparent; color: #fff; box-shadow: none; text-decoration: underline; }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "../aiko-asset-pack/vendor/three/build/three.module.js",
+  "three/addons/": "../aiko-asset-pack/vendor/three/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<main class="page">
+  <section class="stage" aria-label="Aiko 3D">
+    <span class="badge">Pratinjau · three.js r186</span>
+    <div id="view"></div>
+    <p class="hint">Seret untuk memutar · gulir untuk mendekat</p>
+    <div class="present-only show-title"><p>PRODAMAT 2026 · Kelompok 2 · Magister Informatika UAD</p><h2>AI di Sekitar Kita</h2></div>
+    <p class="present-only show-bubble" id="show-bubble" aria-live="polite">Hai! Aku Aiko, teman belajar kalian hari ini.</p>
+    <div class="present-only show-bar" id="show-bar"></div>
+    <p class="fallback" id="fallback">Browser ini tidak mendukung WebGL, jadi Aiko 3D tidak bisa ditampilkan.</p>
+  </section>
+  <aside class="panel">
+    <h1>Aiko 3D</h1>
+    <p class="lede">Satu karakter dengan enam gerakan pendek untuk momen belajar. Klik pose untuk memutarnya.</p>
+    <div class="poses" id="poses"></div>
+    <div class="row">
+      <button class="btn sun" id="tour">Putar semua gerakan</button>
+      <button class="btn ghost" id="side">Lihat dari samping</button>
+      <button class="btn ghost" id="front">Hadap depan</button>
+      <button class="btn primary" id="present">Mode presentasi (layar penuh)</button>
+    </div>
+    <label class="check"><input type="checkbox" id="breathe" checked>Napas dan kedip saat diam</label>
+    <p class="note" id="motion-note">Gerakan berjalan sekali lalu kembali diam. Untuk perangkat dengan pengaturan kurangi gerak, Aiko langsung berpindah pose tanpa animasi.</p>
+  </aside>
+</main>
+
+<script type="module">
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
+
+const POSES = [
+  { id: "idle", label: "Siap menemani", use: "menunggu mulai", duration: 2.4, say: "Hai! Aku Aiko, teman belajar kalian hari ini." },
+  { id: "wave", label: "Halo, teman!", use: "menyapa", duration: 2.6, say: "Halo, teman-teman kelas 5 dan 6! Siap belajar tentang AI?" },
+  { id: "think", label: "Yuk, pikirkan", use: "sebelum menjawab", duration: 2.8, say: "Coba pikirkan: di mana saja kita bisa menemukan AI?" },
+  { id: "read", label: "Ayo belajar", use: "waktu belajar", duration: 3.2, say: "Ayo belajar bersama kakak pendamping!" },
+  { id: "celebrate", label: "Kamu selesai!", use: "setelah tes terkirim", duration: 2.4, say: "Hebat! Kalian sudah menyelesaikan semua tes!" },
+  { id: "reassure", label: "Coba lagi, yuk", use: "saat ada gangguan", duration: 2.4, say: "Belum tahu jawabannya? Tidak apa-apa, kita belajar bersama." },
+];
+// ?gerak=paksa memutar animasi walau perangkat memakai pengaturan kurangi gerak (untuk meninjau).
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches && new URLSearchParams(location.search).get("gerak") !== "paksa";
+
+// ---------- Renderer, kamera, cahaya ----------
+const host = document.getElementById("view");
+const stage = host.parentElement;
+let renderer;
+try { renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); }
+catch { document.getElementById("fallback").style.display = "grid"; throw new Error("WebGL tidak tersedia"); }
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+host.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
+camera.position.set(0, 0.3, 10);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, -0.72, 0);
+controls.enableDamping = true;
+controls.enablePan = false;
+controls.minDistance = 5.5;
+controls.maxDistance = 12;
+controls.minPolarAngle = Math.PI * 0.28;
+controls.maxPolarAngle = Math.PI * 0.62;
+
+scene.add(new THREE.HemisphereLight(0xffffff, 0xb8c8e6, 1.35));
+const key = new THREE.DirectionalLight(0xffffff, 2.4);
+key.position.set(-1.6, 8, 3.2);
+key.castShadow = true;
+key.shadow.mapSize.set(1024, 1024);
+key.shadow.camera.left = -4; key.shadow.camera.right = 4; key.shadow.camera.top = 4; key.shadow.camera.bottom = -4;
+key.shadow.radius = 6;
+key.shadow.bias = -0.0005;
+scene.add(key);
+const rim = new THREE.DirectionalLight(0xbcd2ff, 1.6);
+rim.position.set(4, 3, -5);
+scene.add(rim);
+const fill = new THREE.DirectionalLight(0xfff1dc, 0.6);
+fill.position.set(4, -1, 5);
+scene.add(fill);
+
+// ---------- Material ----------
+const plastic = (color, extra = {}) => new THREE.MeshPhysicalMaterial({ color, roughness: 0.42, metalness: 0, clearcoat: 0.6, clearcoatRoughness: 0.35, ...extra });
+const M = {
+  shell: plastic(0xf3f9fd),
+  shellShade: plastic(0xd4e6f3),
+  limb: plastic(0x97bed7),
+  limbDark: plastic(0x7da9c9),
+  leg: plastic(0xa8c6dd),
+  ear: plastic(0x7aa7c6),
+  neck: plastic(0x729dbb),
+  visor: new THREE.MeshPhysicalMaterial({ color: 0x193951, roughness: 0.18, clearcoat: 1, clearcoatRoughness: 0.08 }),
+  glow: new THREE.MeshStandardMaterial({ color: 0xc3f5ef, emissive: 0x9ff0e6, emissiveIntensity: 1.25, roughness: 0.4 }),
+  cheek: new THREE.MeshStandardMaterial({ color: 0xffb9ad, emissive: 0xff9c8c, emissiveIntensity: 0.35, roughness: 0.6, transparent: true, opacity: 0.9 }),
+  lamp: new THREE.MeshStandardMaterial({ color: 0xffc94d, emissive: 0xffb420, emissiveIntensity: 0.55, roughness: 0.35 }),
+  panel: plastic(0xfafdff),
+  star: plastic(0x3158df, { roughness: 0.3 }),
+  book: plastic(0x2244bd),
+  paper: plastic(0xfff8e6, { clearcoat: 0 }),
+};
+const shadowed = mesh => { mesh.castShadow = true; mesh.receiveShadow = true; return mesh; };
+const box = (w, h, d, r, mat, seg = 6) => shadowed(new THREE.Mesh(new RoundedBoxGeometry(w, h, d, seg, r), mat));
+const capsule = (r, len, mat) => shadowed(new THREE.Mesh(new THREE.CapsuleGeometry(r, len, 8, 20), mat));
+const tube = (points, radius, mat) => new THREE.Mesh(new THREE.TubeGeometry(new THREE.QuadraticBezierCurve3(...points.map(p => new THREE.Vector3(...p))), 24, radius, 10, false), mat);
+
+// ---------- Model Aiko ----------
+const aiko = new THREE.Group();
+const hips = new THREE.Group();            // naik-turun saat melompat
+const torso = new THREE.Group();           // napas dan condong
+aiko.add(hips); hips.add(torso);
+scene.add(aiko);
+
+// Kaki
+for (const side of [-1, 1]) {
+  const leg = capsule(0.17, 0.34, M.leg);
+  leg.position.set(side * 0.33, -2.12, 0);
+  hips.add(leg);
+  const foot = box(0.46, 0.2, 0.62, 0.09, M.leg);
+  foot.position.set(side * 0.35, -2.42, 0.08);
+  hips.add(foot);
+}
+// Badan
+const body = box(1.46, 1.28, 1.06, 0.46, M.shell, 8);
+body.position.y = -1.32;
+torso.add(body);
+const belly = box(0.9, 0.66, 0.12, 0.2, M.panel);
+belly.position.set(0, -1.3, 0.5);
+torso.add(belly);
+// Tulisan oranye "UAD" dari logotype resmi (versi tegak, bagian atas) di panel dada.
+// MeshBasicMaterial tanpa tone mapping agar oranye UAD tidak berubah oleh cahaya.
+const logoTexture = new THREE.TextureLoader().load("uad-orange.png");
+logoTexture.colorSpace = THREE.SRGBColorSpace;
+logoTexture.anisotropy = 8;
+const badge = new THREE.Mesh(new THREE.PlaneGeometry(0.66, 0.66 * 243 / 640), new THREE.MeshBasicMaterial({ map: logoTexture, transparent: true, toneMapped: false }));
+badge.position.set(0, -1.3, 0.563);
+torso.add(badge);
+const neck = shadowed(new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.3, 0.1, 24), M.neck));
+neck.position.y = -0.66;
+torso.add(neck);
+
+// Lengan: pivot di bahu, tangan di ujung
+function makeArm(side) {
+  const shoulder = new THREE.Group();
+  shoulder.position.set(side * 0.78, -0.95, 0);
+  const upper = capsule(0.135, 0.52, M.limb);
+  upper.position.y = -0.36;
+  shoulder.add(upper);
+  const wrist = new THREE.Group();
+  wrist.position.y = -0.78;
+  shoulder.add(wrist);
+  const palm = shadowed(new THREE.Mesh(new THREE.SphereGeometry(0.15, 24, 16), M.limbDark));
+  wrist.add(palm);
+  for (const [x, z, tilt] of [[-0.09, 0.03, 0.35], [0, 0.05, 0], [0.09, 0.03, -0.35]]) {
+    const finger = capsule(0.045, 0.12, M.limbDark);
+    finger.position.set(x * side, -0.15, z);
+    finger.rotation.z = tilt * side;
+    wrist.add(finger);
+  }
+  torso.add(shoulder);
+  return { shoulder, wrist };
+}
+const armL = makeArm(-1), armR = makeArm(1);
+
+// Kepala
+const head = new THREE.Group();
+head.position.y = -0.47;   // kepala hampir menempel ke badan, leher sangat pendek
+torso.add(head);
+const skull = box(2.06, 1.42, 1.34, 0.5, M.shell, 8);
+skull.position.y = 0.55;
+head.add(skull);
+const visor = box(1.64, 0.92, 0.22, 0.3, M.visor);
+visor.position.set(0, 0.52, 0.6);
+head.add(visor);
+const face = new THREE.Group();
+face.position.set(0, 0.52, 0.73);
+head.add(face);
+const eyes = new THREE.Group();
+face.add(eyes);
+for (const side of [-1, 1]) {
+  const eye = tube([[-0.15, 0, 0], [0, 0.19, 0], [0.15, 0, 0]], 0.04, M.glow);
+  eye.position.set(side * 0.42, 0.06, 0);
+  eyes.add(eye);
+  const cheek = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 12), M.cheek);
+  cheek.scale.set(0.11, 0.06, 0.02);
+  cheek.position.set(side * 0.6, -0.17, 0);
+  face.add(cheek);
+}
+const mouth = tube([[-0.2, 0, 0], [0, -0.22, 0], [0.2, 0, 0]], 0.035, M.glow);
+mouth.position.y = -0.16;
+face.add(mouth);
+for (const side of [-1, 1]) {
+  const ear = shadowed(new THREE.Mesh(new THREE.CylinderGeometry(0.19, 0.19, 0.14, 28), M.ear));
+  ear.rotation.z = Math.PI / 2;
+  ear.position.set(side * 1.08, 0.5, 0);
+  head.add(ear);
+}
+const antenna = shadowed(new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.05, 0.42, 12), M.neck));
+antenna.position.y = 1.46;
+head.add(antenna);
+const lamp = shadowed(new THREE.Mesh(new THREE.SphereGeometry(0.15, 24, 16), M.lamp));
+lamp.position.y = 1.74;
+head.add(lamp);
+
+// Buku untuk pose membaca
+const book = new THREE.Group();
+const coverL = box(0.62, 0.8, 0.05, 0.03, M.book, 2), coverR = coverL.clone();
+const pageL = box(0.56, 0.74, 0.06, 0.02, M.paper, 2), pageR = pageL.clone();
+coverL.position.x = -0.31; coverR.position.x = 0.31; pageL.position.set(-0.29, 0, 0.04); pageR.position.set(0.29, 0, 0.04);
+coverL.rotation.y = 0.18; coverR.rotation.y = -0.18; pageL.rotation.y = 0.18; pageR.rotation.y = -0.18;
+for (let i = 0; i < 3; i++) for (const side of [-1, 1]) {
+  const line = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.025, 0.01), new THREE.MeshStandardMaterial({ color: 0xd99a14 }));
+  line.position.set(side * 0.29, 0.18 - i * 0.14, 0.08);
+  line.rotation.y = -side * 0.18;
+  book.add(line);
+}
+book.add(coverL, coverR, pageL, pageR);
+book.position.set(0, -1.05, 0.95);
+book.rotation.x = -0.35;
+book.scale.setScalar(0.001);
+book.visible = false;
+torso.add(book);
+
+// Bayangan lantai
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(8, 8), new THREE.ShadowMaterial({ opacity: 0.16 }));
+ground.rotation.x = -Math.PI / 2;
+ground.position.y = -2.52;
+ground.receiveShadow = true;
+scene.add(ground);
+
+// ---------- Konfeti sekali jalan ----------
+const confetti = [];
+const confettiColors = [0x3158df, 0xffc94d, 0x237a4e, 0xffffff];
+function burst() {
+  for (let i = 0; i < 46; i++) {
+    const piece = new THREE.Mesh(new THREE.PlaneGeometry(0.09, 0.15), new THREE.MeshBasicMaterial({ color: confettiColors[i % 4], side: THREE.DoubleSide, transparent: true }));
+    piece.position.set(0, 1.2, 0.3);
+    const a = Math.random() * Math.PI * 2, s = 2.2 + Math.random() * 2.2;
+    piece.userData = { v: new THREE.Vector3(Math.cos(a) * s * 0.7, 3.2 + Math.random() * 2.6, Math.sin(a) * s * 0.4), spin: new THREE.Vector3(Math.random() * 8, Math.random() * 8, Math.random() * 8), life: 0 };
+    scene.add(piece);
+    confetti.push(piece);
+  }
+}
+function updateConfetti(dt) {
+  for (let i = confetti.length - 1; i >= 0; i--) {
+    const piece = confetti[i], d = piece.userData;
+    d.life += dt;
+    d.v.y -= 7.5 * dt;
+    d.v.multiplyScalar(0.985);
+    piece.position.addScaledVector(d.v, dt);
+    piece.rotation.x += d.spin.x * dt; piece.rotation.y += d.spin.y * dt; piece.rotation.z += d.spin.z * dt;
+    piece.material.opacity = Math.max(0, 1 - Math.max(0, d.life - 1.2) / 0.6);
+    if (d.life > 1.8) { scene.remove(piece); piece.geometry.dispose(); piece.material.dispose(); confetti.splice(i, 1); }
+  }
+}
+
+// ---------- Animasi ----------
+// Setiap pose = fungsi waktu lokal (detik) -> sudut. Pose dibaurkan dengan sikap diam lewat envelope halus.
+const smooth = x => x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x);
+const REST = { lz: -0.22, rz: 0.22, lx: 0, rx: 0, wristL: 0, wristR: 0, headX: 0, headZ: 0, headY: 0, hop: 0, lean: 0, book: 0 };
+const POSE_FN = {
+  idle: t => ({ headZ: Math.sin(t * Math.PI) * 0.06, lz: -0.32, rz: 0.32 }),
+  wave: t => ({ rz: 2.5 + Math.sin(t * Math.PI * 2 * 1.35) * 0.32, wristR: Math.sin(t * Math.PI * 2 * 1.35 + 0.6) * 0.35, headZ: -0.1, headY: 0.12, lean: -0.04 }),
+  think: t => ({ rx: -2.25, rz: -0.6, wristR: 0.7, headZ: 0.22 * Math.sin(Math.min(t, 2) * Math.PI), headX: -0.06, lz: -0.3 }),
+  read: t => ({ lx: -1.15, rx: -1.15, lz: 0.32, rz: -0.32, headX: 0.22 + Math.sin(t * Math.PI * 1.3) * 0.04, headY: Math.sin(t * Math.PI * 0.9) * 0.08, book: 1 }),
+  celebrate: t => ({ lz: -2.7 - Math.sin(t * Math.PI * 4) * 0.12, rz: 2.7 + Math.sin(t * Math.PI * 4) * 0.12, hop: Math.max(0, Math.sin(Math.min(t / 1.6, 1) * Math.PI * 2)) * 0.45, headX: -0.1 }),
+  reassure: t => ({ rx: -0.75, rz: 0.75, wristR: -0.3, headX: 0.16 * Math.max(0, Math.sin(Math.min(t / 1.6, 1) * Math.PI * 2)), headZ: 0.08 }),
+};
+let active = null;   // { id, start, duration, fn }
+let clock = 0;
+let blinkAt = 2;
+let breathing = true;
+const queue = [];
+
+function play(id) {
+  const pose = POSES.find(item => item.id === id);
+  document.querySelectorAll(".pose, .show-bar [data-id]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.id === id)));
+  document.getElementById("show-bubble").textContent = pose.say;
+  if (id === "celebrate" && !reduceMotion) burst();
+  active = { id, start: clock, duration: reduceMotion ? 1e9 : pose.duration, fn: POSE_FN[id] };
+}
+function poseAt(time) {
+  const target = { ...REST };
+  if (!active) return target;
+  const local = time - active.start;
+  if (local > active.duration) {
+    active = null;
+    document.querySelectorAll(".pose, .show-bar [data-id]").forEach(button => button.setAttribute("aria-pressed", "false"));
+    if (queue.length) play(queue.shift());
+    return target;
+  }
+  const weight = reduceMotion ? 1 : smooth(local / 0.35) * smooth((active.duration - local) / 0.45);
+  const values = active.fn(reduceMotion ? 0.5 : local);
+  for (const k of Object.keys(values)) target[k] = REST[k] + (values[k] - REST[k]) * weight;
+  return target;
+}
+
+function apply(p, time) {
+  const breath = breathing && !reduceMotion ? Math.sin(time * 2.1) : 0;
+  torso.scale.set(1 + breath * 0.006, 1 + breath * 0.012, 1);
+  hips.position.y = p.hop;
+  torso.rotation.z = p.lean;
+  head.rotation.set(p.headX + breath * 0.012, p.headY, p.headZ);
+  armL.shoulder.rotation.set(p.lx, 0, p.lz - breath * 0.02);
+  armR.shoulder.rotation.set(p.rx, 0, p.rz + breath * 0.02);
+  armL.wrist.rotation.z = p.wristL;
+  armR.wrist.rotation.z = p.wristR;
+  book.visible = p.book > 0.01;
+  book.scale.setScalar(Math.max(0.001, p.book));
+  lamp.material.emissiveIntensity = 0.55 + (active?.id === "celebrate" ? 0.6 : 0) + Math.max(0, breath) * 0.1;
+  // Kedip setiap beberapa detik
+  if (time > blinkAt + 0.14) blinkAt = time + 2.6 + Math.random() * 2.4;
+  const blinking = breathing && !reduceMotion && time >= blinkAt && time < blinkAt + 0.14;
+  eyes.scale.y = blinking ? 0.15 : 1;
+}
+
+// ---------- Ukuran dan loop ----------
+function resize() {
+  const { width, height } = stage.getBoundingClientRect();
+  renderer.setSize(width, height, false);
+  camera.aspect = width / height;
+  camera.updateProjectionMatrix();
+}
+new ResizeObserver(resize).observe(stage);
+resize();
+
+let last = performance.now();
+renderer.setAnimationLoop(now => {
+  const dt = Math.min((now - last) / 1000, 0.05);
+  last = now;
+  clock += dt;
+  apply(poseAt(clock), clock);
+  updateConfetti(dt);
+  controls.update();
+  renderer.render(scene, camera);
+});
+
+// ---------- Panel ----------
+const list = document.getElementById("poses");
+for (const pose of POSES) {
+  const button = document.createElement("button");
+  button.className = "pose";
+  button.dataset.id = pose.id;
+  button.setAttribute("aria-pressed", "false");
+  button.innerHTML = `<strong>${pose.label}</strong><span>${pose.use}</span>`;
+  button.addEventListener("click", () => { queue.length = 0; play(pose.id); });
+  list.appendChild(button);
+}
+document.getElementById("tour").addEventListener("click", () => { queue.length = 0; queue.push(...POSES.slice(1).map(p => p.id)); play(POSES[0].id); });
+const view = (x, y, z) => { camera.position.set(x, y, z); controls.update(); };
+document.getElementById("side").addEventListener("click", () => view(7.6, 0.4, 5.2));
+document.getElementById("front").addEventListener("click", () => view(0, 0.3, 10));
+document.getElementById("breathe").addEventListener("change", event => { breathing = event.target.checked; });
+if (reduceMotion) document.getElementById("motion-note").textContent = "Perangkat ini memakai pengaturan kurangi gerak, jadi Aiko langsung berpindah pose tanpa animasi.";
+
+// Mode presentasi: layar penuh, tombol besar, angka 1-6 memutar pose, Esc keluar.
+const bar = document.getElementById("show-bar");
+POSES.forEach((pose, index) => {
+  const button = document.createElement("button");
+  button.dataset.id = pose.id;
+  button.setAttribute("aria-pressed", "false");
+  button.innerHTML = `<kbd>${index + 1}</kbd>${pose.label}`;
+  button.addEventListener("click", () => { queue.length = 0; play(pose.id); });
+  bar.appendChild(button);
+});
+const exit = document.createElement("button");
+exit.className = "exit";
+exit.textContent = "Keluar (Esc)";
+bar.appendChild(exit);
+function present(on) {
+  document.body.classList.toggle("presenting", on);
+  if (on) { document.documentElement.requestFullscreen?.().catch(() => {}); view(0, 0.3, 10); }
+  else if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  requestAnimationFrame(resize);
+}
+document.getElementById("present").addEventListener("click", () => present(true));
+exit.addEventListener("click", () => present(false));
+document.addEventListener("fullscreenchange", () => { if (!document.fullscreenElement && document.body.classList.contains("presenting")) present(false); });
+document.addEventListener("keydown", event => {
+  if (!document.body.classList.contains("presenting")) return;
+  const index = Number(event.key) - 1;
+  if (index >= 0 && index < POSES.length) { queue.length = 0; play(POSES[index].id); }
+  if (event.key === "Escape") present(false);
+});
+if (new URLSearchParams(location.search).get("mode") === "presentasi") present(true);
+
+// Sapaan pertama saat halaman dibuka
+setTimeout(() => play("wave"), 500);
+window.__aiko = { play, POSES };
+</script>
+</body>
+</html>
