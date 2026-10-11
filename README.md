@@ -73,6 +73,7 @@ Anak mengerjakan **tes awal (pretest)** sebelum materi, mengikuti materi dan per
 | Atur tahap | Pretest, Belajar, Posttest, Selesai. Setiap perubahan dikonfirmasi dan menyebut siswa yang masih mengerjakan. Layar siswa ikut berubah dalam sekitar 8 detik. |
 | Peserta | Progres tiap siswa (misalnya *Mengerjakan 6/10*), pencarian, filter kelas, ubah nama atau kelas, hapus siswa. |
 | Analitik | Rata-rata tes awal dan akhir, persentase siswa yang naik, alur kegiatan, sebaran nilai 0 sampai 10, perbandingan kelas, dan soal yang paling perlu diulas. Setiap grafik punya tooltip dan tampilan tabel. |
+| Pemenang apresiasi | Tiga hadiah dari proposal ditentukan otomatis di tab Peringkat: **Terbaik Kelas V**, **Terbaik Kelas VI**, dan **Juara Peningkatan**. Satu anak paling banyak satu hadiah. Nilai seri diputus dengan aturan yang bisa dijelaskan (benar di soal yang lebih sulit, lalu peningkatan atau nilai), bukan dengan kecepatan mengirim. Ikut tercatat di sheet Ringkasan rekap Excel. |
 | Peringkat | Berdasarkan nilai tes akhir; nilai sama berbagi peringkat. |
 | Analisis soal | Persentase benar per soal untuk tiap tes. |
 | Sertifikat | Nama otomatis dari peserta, nomor bertambah otomatis dari nomor pertama (huruf tetap), nama dan nomor bisa dikoreksi per siswa, pratinjau, unduh JPG atau PNG, dan **unduh semua dalam satu ZIP**. |
@@ -211,6 +212,7 @@ council-out/           (lokal) laporan tinjauan multi-peran
 - [ ] Pindah ke Belajar setelah jumlah *Pretest selesai* sama dengan jumlah anak hadir.
 - [ ] Unduh rekap Excel setelah pretest ditutup dan setelah posttest ditutup.
 - [ ] Jangan menayangkan tab Peringkat ke kelas; cukup umumkan juara.
+- [ ] Umumkan pemenang apresiasi setelah tahap **Selesai** (sebelumnya kartu bertanda sementara). Bila kartu menulis *Masih seri*, tentukan bersama tim, misalnya dengan undian.
 
 ## Tim Kelompok 2
 

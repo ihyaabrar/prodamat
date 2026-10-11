@@ -366,6 +366,23 @@ td.table-name { font-weight: 800; max-width: 300px; overflow-wrap: anywhere; whi
 .winner-banner { display: flex; align-items: center; gap: 22px; background: var(--sun-wash); border: 2px solid #f1d58a; padding: 24px; margin: 0 24px 24px; border-radius: 18px; }
 .winner-banner h3 { margin-block: 6px; overflow-wrap: anywhere; }
 .winner-banner p { color: var(--ink); font-size: 15px; }
+.awards { margin: 0 24px 24px; }
+.awards-head p { margin-top: 4px; font-size: 14px; }
+.award-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 14px; }
+.award-card { display: flex; flex-direction: column; gap: 4px; padding: 18px 20px; background: var(--sun-wash); border: 2px solid #f1d58a; border-radius: 18px; }
+.award-card.growth { background: var(--green-wash); border-color: #b9dcc7; }
+.award-icon { width: 44px; height: 44px; display: grid; place-items: center; margin-bottom: 6px; border-radius: 12px; background: var(--sun); color: var(--ink); }
+.award-card.growth .award-icon { background: var(--green-mid); color: #fff; }
+.award-card h3 { font-size: 21px; overflow-wrap: anywhere; }
+.award-detail { color: var(--ink); font-size: 15px; font-weight: 700; }
+.award-note { margin-top: 4px; font-size: 13px; }
+.award-note.tie { color: #7c3618; font-weight: 700; }
+.award-empty { font-size: 14px; }
+.award-rules { margin-top: 12px; font-size: 14px; }
+.award-rules summary { min-height: 40px; display: flex; align-items: center; cursor: pointer; font-weight: 800; color: var(--blue-dark); }
+.award-rules ul { margin: 4px 0 0; padding-left: 20px; color: var(--muted); }
+.award-rules li { padding-block: 3px; }
+@media (max-width: 760px) { .award-grid { grid-template-columns: 1fr; } .awards { margin-inline: 16px; } }
 .rank-badge { display: inline-flex; align-items: center; justify-content: center; width: 35px; height: 35px; background: #eef1f5; border-radius: 10px; font-weight: 900; }
 .rank-badge.first { background: var(--sun); color: var(--ink); }
 .analysis-panel { padding: 24px; }

@@ -1,5 +1,5 @@
 import type { Question, RekapParticipant, TestKind } from "./model";
-import { ranking } from "./model";
+import { awards, ranking } from "./model";
 import { team } from "./team";
 
 // Rekap Excel berformat untuk laporan. exceljs dimuat hanya saat tombol unduh ditekan agar dashboard tetap ringan.
@@ -85,6 +85,13 @@ export async function exportExcel({ participants, questions, sample }: { partici
     if (index % 2 === 0) [1, 2].forEach(column => { row.getCell(column).fill = { type: "pattern", pattern: "solid", fgColor: { argb: BLUE_WASH } }; });
   }
   summary.getCell(summary.rowCount, 2).numFmt = "dd/mm/yyyy hh:mm";
+  summary.addRow([]);
+  // Pemenang apresiasi, aturan sama dengan tab Peringkat (lib/model.ts awards).
+  summary.addRow(["Pemenang apresiasi"]).getCell(1).font = { bold: true, size: 12, color: { argb: BLUE } };
+  for (const award of awards(participants, questions.posttest)) {
+    const detail = award.empty ?? `${award.winners.map(entry => `${entry.participant.name} (${codeOf.get(entry.participant.code)}, kelas ${entry.participant.className})`).join(", ")} · ${award.key === "improvement" ? `naik ${award.winners[0].gain} poin` : `posttest ${award.winners[0].post}/10`}${award.winners.length > 1 ? " · masih seri" : ""}`;
+    summary.addRow([award.title, detail]);
+  }
   summary.addRow([]);
   summary.addRow(["Tim pelaksana"]).getCell(1).font = { bold: true, size: 12, color: { argb: BLUE } };
   summary.addRow(["Ketua kelompok", `${team.leader.name} (${team.leader.nim})`]);
