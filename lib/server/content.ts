@@ -50,8 +50,8 @@ export function sampleParticipants(): RekapParticipant[] {
   return names.map((name, index) => {
     const base: RekapParticipant = { code: `sample-${index}`, name, className: index < 9 ? "V" : "VI", pretest: null, posttest: null, scores: { pretest: null, posttest: null } };
     if (index > 13) return base;
-    const pretest = { answers: questions.pretest.map((question, questionIndex) => questionIndex < 4 + index % 4 ? question.correct : (question.correct + 1) % 4), submittedAt: "2026-10-13T01:30:00.000Z" };
-    const posttest = index < 10 ? { answers: questions.posttest.map((question, questionIndex) => questionIndex < 8 + index % 3 ? question.correct : (question.correct + 1) % 4), submittedAt: "2026-10-13T02:30:00.000Z" } : null;
+    const pretest = { answers: questions.pretest.map((question, questionIndex) => questionIndex < 4 + index % 4 ? question.correct : (question.correct + 1) % 4), submittedAt: "2026-10-13T01:30:00.000Z", startedAt: new Date(Date.parse("2026-10-13T01:30:00.000Z") - (300 + index * 37) * 1000).toISOString() };
+    const posttest = index < 10 ? { answers: questions.posttest.map((question, questionIndex) => questionIndex < 8 + index % 3 ? question.correct : (question.correct + 1) % 4), submittedAt: "2026-10-13T02:30:00.000Z", startedAt: new Date(Date.parse("2026-10-13T02:30:00.000Z") - (420 - index * 23) * 1000).toISOString() } : null;
     return { ...base, pretest, posttest, scores: { pretest: scoreAnswers("pretest", pretest.answers), posttest: posttest ? scoreAnswers("posttest", posttest.answers) : null } };
   });
 }

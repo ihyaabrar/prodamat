@@ -142,12 +142,31 @@ await step("pendamping menghapus satu siswa", async () => {
   assert.equal(await findRow("Uji Satu", "VI"), undefined);
   assert.equal((await siswaLain("/api/peserta/saya")).data.participant, null);
 });
+await step("waktu mulai tes tercatat untuk kriteria tercepat", async () => {
+  const row = await findRow("Uji Satu Benar", "V");
+  for (const kind of ["pretest", "posttest"]) {
+    assert.ok(row[kind].startedAt, `startedAt ${kind} kosong`);
+    assert.ok(Date.parse(row[kind].startedAt) <= Date.parse(row[kind].submittedAt));
+  }
+});
+await step("siswa tidak bisa memilih pemenang (401)", async () => assert.equal((await siswaUlang("/api/pendamping/apresiasi", { method: "PATCH", body: { goodScore: 5 } })).status, 401));
+await step("pilihan Teraktif dan batas hasil bagus tersimpan", async () => {
+  const row = await findRow("Uji Satu Benar", "V");
+  assert.equal((await pendamping("/api/pendamping/apresiasi", { method: "PATCH", body: { mostActive: row.code, goodScore: 9 } })).status, 200);
+  const { data } = await pendamping("/api/pendamping/rekap");
+  assert.equal(data.prize.mostActive, row.code); assert.equal(data.prize.goodScore, 9);
+  assert.equal((await pendamping("/api/pendamping/apresiasi", { method: "PATCH", body: { mostActive: "bukan-uuid" } })).status, 400);
+  assert.equal((await pendamping("/api/pendamping/apresiasi", { method: "PATCH", body: { mostActive: "00000000-0000-4000-8000-000000000000" } })).status, 404);
+  assert.equal((await pendamping("/api/pendamping/apresiasi", { method: "PATCH", body: { goodScore: 11 } })).status, 400);
+  assert.equal((await pendamping("/api/pendamping/rekap?contoh=1")).data.prize.mostActive, null, "data contoh tidak memakai pilihan asli");
+});
 await step("reset tanpa kalimat konfirmasi ditolak (400)", async () => assert.equal((await pendamping("/api/pendamping/reset", { method: "POST", body: { confirm: "ya" } })).status, 400));
 await step("reset mengosongkan siswa dan kembali ke pretest", async () => {
   await pendamping("/api/pendamping/fase", { method: "PATCH", body: { phase: "closed" } });
   assert.equal((await pendamping("/api/pendamping/reset", { method: "POST", body: { confirm: "mulai baru" } })).status, 200);
   const { data } = await pendamping("/api/pendamping/rekap");
   assert.equal(data.participants.length, 0); assert.equal(data.phase, "pretest");
+  assert.equal(data.prize.mostActive, null, "pilihan Teraktif ikut terhapus");
   assert.equal((await siswaUlang("/api/peserta/saya")).data.participant, null);
 });
 await step("siswa tidak bisa mematikan Aiko 3D (401)", async () => assert.equal((await siswaUlang("/api/pendamping/aiko3d", { method: "PATCH", body: { enabled: false } })).status, 401));

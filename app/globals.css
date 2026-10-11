@@ -370,9 +370,13 @@ td.table-name { font-weight: 800; max-width: 300px; overflow-wrap: anywhere; whi
 .awards-head p { margin-top: 4px; font-size: 14px; }
 .award-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 14px; }
 .award-card { display: flex; flex-direction: column; gap: 4px; padding: 18px 20px; background: var(--sun-wash); border: 2px solid #f1d58a; border-radius: 18px; }
-.award-card.growth { background: var(--green-wash); border-color: #b9dcc7; }
+.award-card.fast { background: var(--green-wash); border-color: #b9dcc7; }
+.award-card.picked { background: var(--blue-wash); border-color: #c5d0f5; }
 .award-icon { width: 44px; height: 44px; display: grid; place-items: center; margin-bottom: 6px; border-radius: 12px; background: var(--sun); color: var(--ink); }
-.award-card.growth .award-icon { background: var(--green-mid); color: #fff; }
+.award-card.fast .award-icon { background: var(--green-mid); color: #fff; }
+.award-card.picked .award-icon { background: var(--blue); color: #fff; }
+.award-select { display: flex; flex-direction: column; gap: 4px; margin-top: auto; padding-top: 12px; font-size: 13px; font-weight: 800; color: var(--muted); }
+.award-select select { min-height: 44px; padding: 8px 10px; border: 2px solid var(--control-line); border-radius: 12px; background: #fff; color: var(--ink); font: inherit; font-size: 15px; font-weight: 700; }
 .award-card h3 { font-size: 21px; overflow-wrap: anywhere; }
 .award-detail { color: var(--ink); font-size: 15px; font-weight: 700; }
 .award-note { margin-top: 4px; font-size: 13px; }

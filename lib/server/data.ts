@@ -1,5 +1,5 @@
 import "server-only";
-import { nameKey, type Attempt, type ClassName, type Me, type Participant, type Phase, type RekapParticipant, type Results, type TestKind } from "../model";
+import { nameKey, type Attempt, type ClassName, type Me, type Participant, type Phase, type Prize, type RekapParticipant, type Results, type TestKind } from "../model";
 import { activityId, db, transaction } from "./db";
 import { answerKey, explanations, publicQuestions } from "./content";
 import { HttpError } from "./http";
@@ -26,13 +26,31 @@ export async function setAiko3d(enabled: boolean) {
   await db.query("update activity set aiko3d = $2, updated_at = now() where id = $1", [activityId(), enabled]);
 }
 
+// Pemenang apresiasi yang diatur pendamping: siswa teraktif dan batas nilai "hasil bagus".
+export async function getPrize(): Promise<Prize> {
+  const { rows } = await db.query<{ most_active: string | null; good_score: number }>("select most_active, good_score from activity where id = $1", [activityId()]);
+  return { mostActive: rows[0]?.most_active ?? null, goodScore: rows[0]?.good_score ?? 8 };
+}
+
+export async function setPrize(change: Partial<Prize>) {
+  await getPhase();
+  if (change.goodScore !== undefined) await db.query("update activity set good_score = $2, updated_at = now() where id = $1", [activityId(), change.goodScore]);
+  if (change.mostActive !== undefined) {
+    const { rowCount } = await db.query(
+      "update activity set most_active = $2, updated_at = now() where id = $1 and ($2::uuid is null or exists (select 1 from participant where id = $2 and activity_id = $1))",
+      [activityId(), change.mostActive],
+    );
+    if (!rowCount) throw new HttpError(404, "Siswa itu tidak ditemukan. Muat ulang dashboard lalu pilih lagi.");
+  }
+}
+
 export async function setPhase(phase: Phase) {
   await getPhase();
   await db.query("update activity set phase = $2, updated_at = now() where id = $1", [activityId(), phase]);
 }
 
-type Row = { id: string; name: string; class_name: ClassName; kind: TestKind | null; answers: (number | null)[] | null; submitted_at: Date | null; score: number | null };
-const PARTICIPANT_ROWS = "select p.id, p.name, p.class_name, a.kind, a.answers, a.submitted_at, a.score from participant p left join attempt a on a.participant_id = p.id";
+type Row = { id: string; name: string; class_name: ClassName; kind: TestKind | null; answers: (number | null)[] | null; submitted_at: Date | null; started_at: Date | null; score: number | null };
+const PARTICIPANT_ROWS = "select p.id, p.name, p.class_name, a.kind, a.answers, a.submitted_at, a.started_at, a.score from participant p left join attempt a on a.participant_id = p.id";
 
 function collect(rows: Row[]): RekapParticipant[] {
   const byId = new Map<string, RekapParticipant>();
@@ -40,7 +58,7 @@ function collect(rows: Row[]): RekapParticipant[] {
     let item = byId.get(row.id);
     if (!item) { item = { code: row.id, name: row.name, className: row.class_name, pretest: null, posttest: null, scores: { pretest: null, posttest: null } }; byId.set(row.id, item); }
     if (row.kind && row.answers) {
-      const attempt: Attempt = { answers: row.answers, submittedAt: row.submitted_at?.toISOString() ?? null };
+      const attempt: Attempt = { answers: row.answers, submittedAt: row.submitted_at?.toISOString() ?? null, startedAt: row.started_at?.toISOString() ?? null };
       item[row.kind] = attempt;
       item.scores[row.kind] = row.submitted_at ? row.score : null;
     }
@@ -129,6 +147,6 @@ export async function resetActivity() {
   await getPhase();
   await transaction(async client => {
     await client.query("delete from participant where activity_id = $1", [activityId()]);
-    await client.query("update activity set phase = 'pretest', updated_at = now() where id = $1", [activityId()]);
+    await client.query("update activity set phase = 'pretest', good_score = 8, most_active = null, updated_at = now() where id = $1", [activityId()]);
   });
 }

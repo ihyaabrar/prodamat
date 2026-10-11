@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { AlertTriangle, ArrowDownToLine, Check, KeyRound, LogOut, Pencil, RotateCcw, Search, TrendingUp, Trash2, Trophy } from "lucide-react";
-import { awards, csvCell, isClassName, phaseLabels, ranking, type Award, RESET_PHRASE, validName, type ClassName, type Phase, type Rekap, type RekapParticipant, type TestKind } from "@/lib/model";
+import { AlertTriangle, ArrowDownToLine, Check, KeyRound, LogOut, Pencil, RotateCcw, Search, Star, Timer, Trash2, Trophy } from "lucide-react";
+import { awards, csvCell, formatDuration, isClassName, phaseLabels, ranking, type Award, type AwardCriterion, type Prize, RESET_PHRASE, validName, type ClassName, type Phase, type Rekap, type RekapParticipant, type TestKind } from "@/lib/model";
 import { Dialog } from "./dialog";
 import { team } from "@/lib/team";
 import { Analytics } from "./analytics";
@@ -64,6 +64,10 @@ export function AdminApp() {
     try { await api("/api/pendamping/aiko3d", { method: "PATCH", body: { enabled } }); await load(sample); }
     catch (failure) { if (errorStatus(failure) === 401) setStatus("login"); else setError(errorMessage(failure)); }
   }
+  async function savePrize(change: Partial<Prize>) {
+    try { await api("/api/pendamping/apresiasi", { method: "PATCH", body: change }); await load(sample); }
+    catch (failure) { if (errorStatus(failure) === 401) setStatus("login"); else setError(errorMessage(failure)); }
+  }
   async function logout() {
     try { await api("/api/pendamping/keluar", { method: "POST" }); } catch {}
     setRekap(null); setSample(false); setStatus("login");
@@ -71,7 +75,7 @@ export function AdminApp() {
 
   if (status === "login") return <AdminLogin onDone={() => { setStatus("loading"); void load(sample); }}/>;
   if (status === "loading" || !rekap) return status === "error" ? <StateMessage title="Data kegiatan belum bisa dimuat." detail={error} onRetry={() => load(sample)}/> : <StateMessage title="Memuat data kegiatan..."/>;
-  return <Admin rekap={rekap} sample={sample} onSample={() => setSample(!sample)} onPhase={changePhase} phaseSaving={phaseSaving} onLogout={logout} onRefresh={() => load(sample)} onAiko3d={toggleAiko3d} error={error}/>;
+  return <Admin rekap={rekap} sample={sample} onSample={() => setSample(!sample)} onPhase={changePhase} phaseSaving={phaseSaving} onLogout={logout} onRefresh={() => load(sample)} onAiko3d={toggleAiko3d} onPrize={savePrize} error={error}/>;
 }
 
 function AdminLogin({ onDone }: { onDone: () => void }) {
@@ -117,7 +121,7 @@ function AdminLogin({ onDone }: { onDone: () => void }) {
   </section>;
 }
 
-function Admin({ rekap, sample, onSample, onPhase, phaseSaving, onLogout, onRefresh, onAiko3d, error }: { rekap: Rekap; sample: boolean; onSample: () => void; onPhase: (phase: Phase) => Promise<void>; phaseSaving: boolean; onLogout: () => void; onRefresh: () => Promise<void>; onAiko3d: (enabled: boolean) => Promise<void>; error: string }) {
+function Admin({ rekap, sample, onSample, onPhase, phaseSaving, onLogout, onRefresh, onAiko3d, onPrize, error }: { rekap: Rekap; onPrize: (change: Partial<Prize>) => Promise<void>; sample: boolean; onSample: () => void; onPhase: (phase: Phase) => Promise<void>; phaseSaving: boolean; onLogout: () => void; onRefresh: () => Promise<void>; onAiko3d: (enabled: boolean) => Promise<void>; error: string }) {
   const [pendingPhase, setPendingPhase] = useState<Phase | null>(null);
   const [editing, setEditing] = useState<RekapParticipant | null>(null);
   const [resetting, setResetting] = useState(false);
@@ -134,7 +138,7 @@ function Admin({ rekap, sample, onSample, onPhase, phaseSaving, onLogout, onRefr
   const matches = (participant: RekapParticipant) => participant.name.toLocaleLowerCase("id-ID").includes(search.trim().toLocaleLowerCase("id-ID")) && (classFilter === "all" || participant.className === classFilter);
   const visible = data.filter(matches);
   const ranks = ranking(data);
-  const prizes = awards(data, questions.posttest);
+  const prizes = awards(data, questions.posttest, rekap.prize);
   const visibleRanks = ranks.filter(item => matches(item.participant));
   const completed = data.filter(participant => participant[testFilter]?.submittedAt);
 
@@ -143,13 +147,13 @@ function Admin({ rekap, sample, onSample, onPhase, phaseSaving, onLogout, onRefr
     try {
       const { exportExcel } = await import("@/lib/export-excel");
       const stamp = new Date().toISOString().slice(0, 10);
-      downloadBlob(await exportExcel({ participants: data, questions, sample }), `rekap-prodamat-kelompok2-${sample ? "contoh" : stamp}.xlsx`, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+      downloadBlob(await exportExcel({ participants: data, questions, sample, prize: rekap.prize }), `rekap-prodamat-kelompok2-${sample ? "contoh" : stamp}.xlsx`, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
     } finally { setExporting(false); }
   }
 
   function exportCsv() {
     const ordered = [...data].sort((a, b) => a.className.localeCompare(b.className) || a.name.localeCompare(b.name, "id-ID"));
-    const rows = [["Sumber data", "Kode", "Nama peserta", "Kelas", "Peringkat posttest", "Nilai pretest", "Nilai posttest", "Selisih poin", "Status", "Kirim pretest", "Kirim posttest", ...Array.from({ length: 10 }, (_, index) => `Pretest ${index + 1}`), ...Array.from({ length: 10 }, (_, index) => `Posttest ${index + 1}`)], ...ordered.map((participant, order) => {
+    const rows = [["Sumber data", "Kode", "Nama peserta", "Kelas", "Peringkat total", "Nilai pretest", "Nilai posttest", "Selisih poin", "Status", "Kirim pretest", "Kirim posttest", ...Array.from({ length: 10 }, (_, index) => `Pretest ${index + 1}`), ...Array.from({ length: 10 }, (_, index) => `Posttest ${index + 1}`)], ...ordered.map((participant, order) => {
       const pre = participant.scores.pretest, post = participant.scores.posttest;
       return [sample ? "CONTOH" : "KEGIATAN", `P${String(order + 1).padStart(3, "0")}`, participant.name, participant.className, ranks.find(item => item.participant.code === participant.code)?.rank ?? "", pre ?? "", post ?? "", pre !== null && post !== null ? post - pre : "", post !== null ? "Kedua tes selesai" : pre !== null ? "Pretest selesai" : "Belum selesai", participant.pretest?.submittedAt ?? "", participant.posttest?.submittedAt ?? "", ...(["pretest", "posttest"] as const).flatMap(kind => participant[kind]?.answers.map(answer => answer === null ? "" : String.fromCharCode(65 + answer)) ?? Array<string>(10).fill(""))];
     })];
@@ -180,9 +184,9 @@ function Admin({ rekap, sample, onSample, onPhase, phaseSaving, onLogout, onRefr
         {!visible.length ? <Empty title={data.length ? "Tidak ada peserta yang cocok." : "Belum ada peserta terdaftar."} detail={data.length ? "Coba nama lain atau pilih semua kelas." : "Siswa bisa mulai dari Beranda dengan mengisi nama dan kelas."}/> : null}
         <div className="table-footer">Menampilkan {visible.length} dari {data.length} peserta</div>
       </> : tab === "analytics" ? <Analytics participants={data} questions={questions} sample={sample}/> : tab === "certificates" ? <Certificates participants={data} sample={sample}/> : tab === "ranking" ? <>
-        <div className="ranking-note"><h2>{phase === "closed" ? "Peringkat hasil belajar" : "Peringkat sementara"}</h2><p>Berdasarkan nilai posttest. Nilai sama berbagi peringkat.</p></div>
-        {ranks.length ? <Awards list={prizes} final={phase === "closed"} sample={sample}/> : <Empty title="Belum ada posttest yang dikirim." detail="Pemenang dan peringkat muncul setelah peserta menyelesaikan kedua tes."/>}
-        {ranks.length ? <><div className="table-scroll"><table><caption className="sr-only">Peringkat peserta berdasarkan posttest</caption><thead><tr><th>Peringkat</th><th>Nama peserta</th><th>Kelas</th><th>Posttest</th><th>Pretest</th></tr></thead><tbody>{visibleRanks.map(({ participant, points, rank }) => <tr key={participant.code}><td><span className={`rank-badge ${rank === 1 ? "first" : ""}`}>{rank}</span></td><td className="table-name">{participant.name}</td><td>{participant.className}</td><td><strong>{points}/10</strong></td><td>{participant.scores.pretest}/10</td></tr>)}</tbody></table></div>{!visibleRanks.length ? <Empty title="Tidak ada peserta yang cocok." detail="Coba nama lain atau pilih semua kelas."/> : null}<div className="table-footer"><span>Menampilkan {visibleRanks.length} dari {ranks.length} peserta selesai</span><span>Peringkat tetap sama saat difilter.</span></div></> : null}
+        <div className="ranking-note"><h2>{phase === "closed" ? "Peringkat hasil belajar" : "Peringkat sementara"}</h2><p>Berdasarkan total nilai pretest + posttest. Total sama berbagi peringkat.</p></div>
+        {ranks.length ? <Awards list={prizes} participants={data} prize={rekap.prize} onPrize={onPrize} final={phase === "closed"} sample={sample}/> : <Empty title="Belum ada posttest yang dikirim." detail="Pemenang dan peringkat muncul setelah peserta menyelesaikan kedua tes."/>}
+        {ranks.length ? <><div className="table-scroll"><table><caption className="sr-only">Peringkat peserta berdasarkan total pretest dan posttest</caption><thead><tr><th>Peringkat</th><th>Nama peserta</th><th>Kelas</th><th>Total</th><th>Posttest</th><th>Pretest</th></tr></thead><tbody>{visibleRanks.map(({ participant, points, rank }) => <tr key={participant.code}><td><span className={`rank-badge ${rank === 1 ? "first" : ""}`}>{rank}</span></td><td className="table-name">{participant.name}</td><td>{participant.className}</td><td><strong>{points}/20</strong></td><td>{participant.scores.posttest}/10</td><td>{participant.scores.pretest}/10</td></tr>)}</tbody></table></div>{!visibleRanks.length ? <Empty title="Tidak ada peserta yang cocok." detail="Coba nama lain atau pilih semua kelas."/> : null}<div className="table-footer"><span>Menampilkan {visibleRanks.length} dari {ranks.length} peserta selesai</span><span>Peringkat tetap sama saat difilter.</span></div></> : null}
       </> : <div className="analysis-panel">
         <div className="analysis-top"><div><h2>Jawaban per soal</h2><p>{completed.length} tes sudah dikirim.</p></div><div className="segmented-control" aria-label="Pilih tes untuk analisis">{(["pretest", "posttest"] as TestKind[]).map(kind => <button key={kind} aria-pressed={testFilter === kind} className={testFilter === kind ? "active" : ""} onClick={() => setTestFilter(kind)}>{kind === "pretest" ? "Pretest" : "Posttest"}</button>)}</div></div>
         {questions[testFilter].map((question, index) => {
@@ -265,43 +269,76 @@ function ResetDialog({ total, onExport, onClose, onDone }: { total: number; onEx
     </form>
   </Dialog>;
 }
-// Tiga pemenang apresiasi sesuai proposal; aturan penentu ada di lib/model.ts (awards).
-function Awards({ list, final, sample }: { list: Award[]; final: boolean; sample: boolean }) {
+// Tiga pemenang apresiasi (keputusan tim): dua dihitung otomatis (lib/model.ts awards), Teraktif dipilih pendamping.
+function Awards({ list, participants, prize, onPrize, final, sample }: { list: Award[]; participants: RekapParticipant[]; prize: Prize; onPrize: (change: Partial<Prize>) => Promise<void>; final: boolean; sample: boolean }) {
+  const [saving, setSaving] = useState(false);
+  const save = async (change: Partial<Prize>) => { setSaving(true); try { await onPrize(change); } finally { setSaving(false); } };
+  const active = participants.find(participant => participant.code === prize.mostActive) ?? null;
+  const [best, fastest] = list;
   return <section className="awards" aria-labelledby="awards-title">
     <div className="awards-head">
       <h2 id="awards-title">Pemenang apresiasi</h2>
-      <p>{final ? "Sesi sudah ditutup, pemenang sudah final." : "Sementara. Bisa berubah selama posttest masih dikerjakan; umumkan setelah tahap Selesai."}{sample ? " Ini data contoh." : ""}</p>
+      <p>{final ? "Sesi sudah ditutup, pemenang sudah final." : "Sementara. Bisa berubah selama posttest masih dikerjakan; umumkan setelah tahap Selesai."}{sample ? " Ini data contoh; pilihan tidak disimpan." : ""}</p>
     </div>
-    <div className="award-grid">{list.map(award => <article key={award.key} className={`award-card ${award.key === "improvement" ? "growth" : ""}`}>
-      <span className="award-icon" aria-hidden="true">{award.key === "improvement" ? <TrendingUp size={24}/> : <Trophy size={24}/>}</span>
-      <span className="step-label">{award.title}</span>
-      {award.empty ? <p className="award-empty">{award.empty}</p> : <>
-        <h3>{award.winners.map(entry => entry.participant.name).join(", ")}</h3>
-        <p className="award-detail">{award.winners.length === 1 ? `Kelas ${award.winners[0].participant.className} · ` : ""}{award.key === "improvement" ? `naik ${award.winners[0].gain} poin (${award.winners[0].pre} ke ${award.winners[0].post})` : `posttest ${award.winners[0].post}/10 · pretest ${award.winners[0].pre}/10`}</p>
-        <AwardNote award={award}/>
-      </>}
-    </article>)}</div>
+    <div className="award-grid">
+      <article className="award-card">
+        <span className="award-icon" aria-hidden="true"><Trophy size={24}/></span>
+        <span className="step-label">{best.title}</span>
+        {best.empty ? <p className="award-empty">{best.empty}</p> : <>
+          <h3>{best.winners.map(entry => entry.participant.name).join(", ")}</h3>
+          <p className="award-detail">{best.winners.length === 1 ? `Kelas ${best.winners[0].participant.className} · ` : ""}pretest {best.winners[0].pre} + posttest {best.winners[0].post} = {best.winners[0].total}/20</p>
+          <AwardNote award={best}/>
+        </>}
+      </article>
+      <article className="award-card fast">
+        <span className="award-icon" aria-hidden="true"><Timer size={24}/></span>
+        <span className="step-label">{fastest.title}</span>
+        {fastest.empty ? <p className="award-empty">{fastest.empty}</p> : <>
+          <h3>{fastest.winners.map(entry => entry.participant.name).join(", ")}</h3>
+          <p className="award-detail">{fastest.winners.length === 1 ? `Kelas ${fastest.winners[0].participant.className} · ` : ""}posttest {fastest.winners[0].post}/10 · {formatDuration(fastest.winners[0].seconds ?? 0)} untuk kedua tes</p>
+          <AwardNote award={fastest}/>
+        </>}
+        <label className="award-select">Batas hasil bagus: posttest minimal
+          <select value={prize.goodScore} disabled={sample || saving} onChange={event => void save({ goodScore: Number(event.target.value) })}>{[6, 7, 8, 9, 10].map(score => <option key={score} value={score}>{score}/10</option>)}</select>
+        </label>
+      </article>
+      <article className="award-card picked">
+        <span className="award-icon" aria-hidden="true"><Star size={24}/></span>
+        <span className="step-label">Teraktif</span>
+        {active ? <><h3>{active.name}</h3><p className="award-detail">Kelas {active.className} · dipilih kakak pendamping</p></> : <p className="award-empty">Dipilih kakak pendamping saat acara, misalnya yang paling aktif bertanya dan menjawab di permainan Detektif AI.</p>}
+        <label className="award-select">Siswa teraktif
+          <select value={prize.mostActive ?? ""} disabled={sample || saving} onChange={event => void save({ mostActive: event.target.value || null })}>
+            <option value="">Belum dipilih</option>
+            {[...participants].sort((a, b) => a.name.localeCompare(b.name, "id-ID")).map(participant => <option key={participant.code} value={participant.code}>{participant.name} · Kelas {participant.className}</option>)}
+          </select>
+        </label>
+      </article>
+    </div>
     <details className="award-rules">
       <summary>Cara pemenang ditentukan</summary>
       <ul>
-        <li>Hanya siswa yang menyelesaikan pretest dan posttest. Satu anak paling banyak satu hadiah.</li>
-        <li><strong>Terbaik kelas:</strong> nilai posttest tertinggi di kelasnya. Bila sama, yang lebih banyak benar di soal yang paling banyak dijawab salah oleh teman-teman. Bila masih sama, yang peningkatannya lebih besar.</li>
-        <li><strong>Juara Peningkatan:</strong> kenaikan dari pretest ke posttest terbesar, di antara siswa selain terbaik kelas. Bila sama, nilai posttest lebih tinggi, lalu soal yang lebih sulit.</li>
-        <li>Waktu mengirim tidak dihitung, karena anak diberi tahu tidak perlu buru-buru.</li>
+        <li>Satu anak paling banyak satu hadiah. Anak yang dipilih sebagai Teraktif tidak dihitung lagi untuk dua hadiah lainnya.</li>
+        <li><strong>Nilai Terbaik:</strong> total nilai pretest + posttest tertinggi. Bila sama, posttest yang lebih tinggi. Bila masih sama, yang lebih banyak benar di soal yang paling banyak dijawab salah oleh teman-teman.</li>
+        <li><strong>Tercepat dengan Hasil Bagus:</strong> dari anak yang posttest-nya minimal {prize.goodScore}/10, total waktu mengerjakan pretest + posttest paling singkat. Waktu dihitung per anak dari jawaban pertama sampai tombol kirim, jadi anak yang datang terlambat tidak dirugikan.</li>
+        <li><strong>Teraktif:</strong> dipilih kakak pendamping saat acara.</li>
       </ul>
     </details>
   </section>;
 }
 
+const CRITERION: Record<AwardCriterion, { name: string; reason: string }> = {
+  total: { name: "Total nilai", reason: "total nilainya lebih tinggi" },
+  score: { name: "nilai posttest", reason: "nilai posttest lebih tinggi" },
+  hard: { name: "soal sulit", reason: "benar di soal yang lebih sulit" },
+  time: { name: "Waktu", reason: "lebih cepat" },
+};
+
 function AwardNote({ award }: { award: Award }) {
   if (award.winners.length > 1) return <p className="award-note tie">Masih seri setelah semua aturan. Tentukan bersama tim, misalnya dengan undian.</p>;
   const other = award.runnerUp?.participant.name;
-  if (!other || award.decidedBy === null || (award.key === "improvement" ? award.decidedBy === "gain" : award.decidedBy === "score")) return null;
-  const same = award.key === "improvement"
-    ? { score: "Peningkatan sama", hard: "Peningkatan dan nilai sama", gain: "" }[award.decidedBy]
-    : { score: "", hard: "Nilai sama", gain: "Nilai dan soal sulit sama" }[award.decidedBy];
-  const reason = { score: "nilai posttest lebih tinggi", hard: "benar di soal yang lebih sulit", gain: "peningkatannya lebih besar" }[award.decidedBy];
-  return <p className="award-note">{same} dengan {other}; unggul karena {reason}.</p>;
+  if (!other || !award.decidedBy || award.decidedBy === award.order[0]) return null;
+  const same = award.order.slice(0, award.order.indexOf(award.decidedBy)).map(criterion => CRITERION[criterion].name).join(" dan ");
+  return <p className="award-note">{same} sama dengan {other}; unggul karena {CRITERION[award.decidedBy].reason}.</p>;
 }
 
 function Empty({ title, detail }: { title: string; detail: string }) {

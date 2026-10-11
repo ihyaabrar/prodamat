@@ -1,5 +1,5 @@
-import type { Question, RekapParticipant, TestKind } from "./model";
-import { awards, ranking } from "./model";
+import type { Prize, Question, RekapParticipant, TestKind } from "./model";
+import { awards, formatDuration, ranking } from "./model";
 import { team } from "./team";
 
 // Rekap Excel berformat untuk laporan. exceljs dimuat hanya saat tombol unduh ditekan agar dashboard tetap ringan.
@@ -10,7 +10,7 @@ const local = (date: Date) => new Date(date.getTime() - date.getTimezoneOffset()
 const when = (iso: string | null | undefined) => iso ? local(new Date(iso)) : null;
 const classLabel = (className: string) => className === "V" ? "5" : "6";
 
-export async function exportExcel({ participants, questions, sample }: { participants: RekapParticipant[]; questions: Record<TestKind, Question[]>; sample: boolean }) {
+export async function exportExcel({ participants, questions, sample, prize }: { participants: RekapParticipant[]; questions: Record<TestKind, Question[]>; sample: boolean; prize: Prize }) {
   const { default: ExcelJS } = await import("exceljs");
   const book = new ExcelJS.Workbook();
   book.creator = `PRODAMAT 2026 ${team.group}`;
@@ -88,10 +88,14 @@ export async function exportExcel({ participants, questions, sample }: { partici
   summary.addRow([]);
   // Pemenang apresiasi, aturan sama dengan tab Peringkat (lib/model.ts awards).
   summary.addRow(["Pemenang apresiasi"]).getCell(1).font = { bold: true, size: 12, color: { argb: BLUE } };
-  for (const award of awards(participants, questions.posttest)) {
-    const detail = award.empty ?? `${award.winners.map(entry => `${entry.participant.name} (${codeOf.get(entry.participant.code)}, kelas ${entry.participant.className})`).join(", ")} · ${award.key === "improvement" ? `naik ${award.winners[0].gain} poin` : `posttest ${award.winners[0].post}/10`}${award.winners.length > 1 ? " · masih seri" : ""}`;
+  const who = (participant: RekapParticipant) => `${participant.name} (${codeOf.get(participant.code)}, kelas ${participant.className})`;
+  for (const award of awards(participants, questions.posttest, prize)) {
+    const top = award.winners[0];
+    const detail = award.empty ?? `${award.winners.map(entry => who(entry.participant)).join(", ")} · ${award.key === "best" ? `total ${top.total}/20` : `posttest ${top.post}/10, ${formatDuration(top.seconds ?? 0)}`}${award.winners.length > 1 ? " · masih seri" : ""}`;
     summary.addRow([award.title, detail]);
   }
+  const active = participants.find(participant => participant.code === prize.mostActive);
+  summary.addRow(["Teraktif", active ? `${who(active)} · dipilih pendamping` : "Belum dipilih"]);
   summary.addRow([]);
   summary.addRow(["Tim pelaksana"]).getCell(1).font = { bold: true, size: 12, color: { argb: BLUE } };
   summary.addRow(["Ketua kelompok", `${team.leader.name} (${team.leader.nim})`]);

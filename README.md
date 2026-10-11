@@ -14,7 +14,7 @@ PRODAMAT 2026 · Kelompok 2 · Magister Informatika, Universitas Ahmad Dahlan
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178c6?logo=typescript&logoColor=white)
 ![Neon Postgres](https://img.shields.io/badge/Neon_Postgres-00e599?logo=postgresql&logoColor=black)
 ![Vercel](https://img.shields.io/badge/Vercel-sin1-000000?logo=vercel&logoColor=white)
-![Uji API](https://img.shields.io/badge/uji_API-36_skenario-1d6b44)
+![Uji API](https://img.shields.io/badge/uji_API-39_skenario-1d6b44)
 
 [Tentang](#tentang-kegiatan) · [Tampilan](#tampilan) · [Fitur](#fitur) · [Arsitektur](#arsitektur) · [Menjalankan](#menjalankan-di-komputer) · [Hari-H](#persiapan-hari-h) · [Tim](#tim-kelompok-2)
 
@@ -73,8 +73,8 @@ Anak mengerjakan **tes awal (pretest)** sebelum materi, mengikuti materi dan per
 | Atur tahap | Pretest, Belajar, Posttest, Selesai. Setiap perubahan dikonfirmasi dan menyebut siswa yang masih mengerjakan. Layar siswa ikut berubah dalam sekitar 8 detik. |
 | Peserta | Progres tiap siswa (misalnya *Mengerjakan 6/10*), pencarian, filter kelas, ubah nama atau kelas, hapus siswa. |
 | Analitik | Rata-rata tes awal dan akhir, persentase siswa yang naik, alur kegiatan, sebaran nilai 0 sampai 10, perbandingan kelas, dan soal yang paling perlu diulas. Setiap grafik punya tooltip dan tampilan tabel. |
-| Pemenang apresiasi | Tiga hadiah dari proposal ditentukan otomatis di tab Peringkat: **Terbaik Kelas V**, **Terbaik Kelas VI**, dan **Juara Peningkatan**. Satu anak paling banyak satu hadiah. Nilai seri diputus dengan aturan yang bisa dijelaskan (benar di soal yang lebih sulit, lalu peningkatan atau nilai), bukan dengan kecepatan mengirim. Ikut tercatat di sheet Ringkasan rekap Excel. |
-| Peringkat | Berdasarkan nilai tes akhir; nilai sama berbagi peringkat. |
+| Pemenang apresiasi | Tiga hadiah sesuai keputusan tim, di tab Peringkat: **Nilai Terbaik** (total pretest + posttest), **Tercepat dengan Hasil Bagus** (posttest minimal batas yang bisa diatur, bawaan 8/10, lalu total waktu mengerjakan paling singkat; waktu dihitung per anak dari jawaban pertama sampai kirim), dan **Teraktif** (dipilih pendamping saat acara, tersimpan di server). Satu anak paling banyak satu hadiah; nilai seri diputus dengan aturan yang tertulis di kartu. Ikut tercatat di sheet Ringkasan rekap Excel. |
+| Peringkat | Berdasarkan total nilai pretest + posttest; total sama berbagi peringkat. |
 | Analisis soal | Persentase benar per soal untuk tiap tes. |
 | Sertifikat | Nama otomatis dari peserta, nomor bertambah otomatis dari nomor pertama (huruf tetap), nama dan nomor bisa dikoreksi per siswa, pratinjau, unduh JPG atau PNG, dan **unduh semua dalam satu ZIP**. |
 | Rekap Excel | Empat sheet berformat: Ringkasan, Peserta, Jawaban (hijau = tepat, ada baris kunci), Analisis soal (bilah data dan sebaran pilihan A sampai D). CSV mentah tetap tersedia. |
@@ -167,7 +167,7 @@ PENDAMPING_PASSWORD=<kata sandi uji lokal>
 | `npm run build` | Build produksi |
 | `npm run typecheck` | Pemeriksaan TypeScript |
 | `npm run db:migrate` | Menerapkan `db/schema.sql` (idempoten, koneksi langsung) |
-| `npm run test:api` | 36 uji alur API terhadap `npm run dev`; hanya untuk kegiatan berawalan `uji`, datanya dihapus di akhir |
+| `npm run test:api` | 39 uji alur API terhadap `npm run dev`; hanya untuk kegiatan berawalan `uji`, datanya dihapus di akhir |
 | `node scripts/build-aiko.mjs` | Menyalin pose dan ikon Aiko dari paket aset ke `lib/aiko-art.ts` |
 
 ## Struktur proyek
@@ -212,6 +212,7 @@ council-out/           (lokal) laporan tinjauan multi-peran
 - [ ] Pindah ke Belajar setelah jumlah *Pretest selesai* sama dengan jumlah anak hadir.
 - [ ] Unduh rekap Excel setelah pretest ditutup dan setelah posttest ditutup.
 - [ ] Jangan menayangkan tab Peringkat ke kelas; cukup umumkan juara.
+- [ ] Saat permainan Detektif AI, pilih siswa **Teraktif** di tab Peringkat. Sesuaikan batas *hasil bagus* bila belum ada yang mencapai 8/10.
 - [ ] Umumkan pemenang apresiasi setelah tahap **Selesai** (sebelumnya kartu bertanda sementara). Bila kartu menulis *Masih seri*, tentukan bersama tim, misalnya dengan undian.
 
 ## Tim Kelompok 2

@@ -32,6 +32,16 @@ create table if not exists attempt (
   check (submitted_at is null or (score is not null and array_position(answers, null) is null))
 );
 
+-- Waktu jawaban pertama per tes, untuk kriteria "tercepat": durasi dihitung per anak dari jawaban pertama sampai
+-- kirim, jadi anak yang datang terlambat tidak dirugikan. Baris lama tetap kosong (waktunya tidak diketahui).
+alter table attempt add column if not exists started_at timestamptz;
+alter table attempt alter column started_at set default now();
+
+-- Pemenang apresiasi: siswa teraktif dipilih pendamping saat acara, dan batas nilai posttest "hasil bagus"
+-- untuk kriteria tercepat.
+alter table activity add column if not exists most_active uuid references participant (id) on delete set null;
+alter table activity add column if not exists good_score smallint not null default 8 check (good_score between 1 and 10);
+
 create table if not exists session (
   token_hash text primary key,
   role text not null check (role in ('siswa', 'pendamping')),
